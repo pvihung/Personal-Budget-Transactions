@@ -37,6 +37,5 @@ Consolidated financial overview showing:
 | **Programming Language**            | Python                 | Core application logic                              |
 | **Backend Framework**               | Flask                  | Lightweight REST API and server logic               |
 | **Frontend Framework**              | Bootstrap              | Responsive and clean web interface                  |
-| **Database**                        | SQLite / SQL (TBD)     | Persistent data storage                             |
+| **Database**                        | SQLite /               | Persistent data storage                             |
 | **GUI Toolkit (Prototype/Desktop)** | Tkinter                | Optional GUI for local testing or standalone builds |
-| **Data Storage**                    | N/A (Local/DB-managed) | No external data service used currently             |
