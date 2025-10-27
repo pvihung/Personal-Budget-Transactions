@@ -1,0 +1,201 @@
+household_id,record_id,record_type,category,subcategory,amount,currency,transaction_date,description,payment_method,payer_payee,is_recurring,recurrence_interval,household_size,location_city,location_state,location_postal_code,location_country
+HH001,REC001,income,salary,,4200,USD,2023-11-30,November salary direct deposit,bank_transfer,Pacific Tech Corp,true,monthly,1,Seattle,WA,98101,USA
+HH002,REC002,expense,rent,,1850,USD,2023-12-01,December apartment rent,bank_transfer,Maplewood Apartments,true,monthly,2,Austin,TX,78701,USA
+HH003,REC003,income,investment,dividends,350.25,USD,2024-01-15,Quarterly stock dividends,bank_transfer,Fidelity Investments,true,quarterly,2,San Jose,CA,95112,USA
+HH004,REC004,expense,groceries,fruits,94.13,USD,2023-12-14,Grocery shopping - fruits,debit_card,Trader Joe's,false,,3,Chicago,IL,60607,USA
+HH005,REC005,expense,utilities,electricity,120.55,USD,2024-01-05,Electricity bill January,bank_transfer,Seattle City Light,true,monthly,1,Seattle,WA,98122,USA
+HH006,REC006,income,side_job,rideshare,420,USD,2023-12-18,Uber driving weekly payout,bank_transfer,Uber,false,,1,Houston,TX,77002,USA
+HH007,REC007,expense,entertainment,movie,48.5,USD,2023-11-23,IMAX movie night tickets,credit_card,AMC Theatres,false,,2,Boston,MA,02114,USA
+HH008,REC008,expense,utilities,water,62.7,USD,2023-12-06,December water bill,bank_transfer,Boston Water Dept,true,monthly,2,Boston,MA,02110,USA
+HH009,REC009,income,rental_income,,2300,USD,2024-01-04,Rental income January,bank_transfer,Downtown Tenant,true,monthly,4,New York,NY,10016,USA
+HH010,REC010,expense,transportation,public_transit,110,USD,2024-01-09,January subway card reload,credit_card,MTA,true,monthly,1,New York,NY,10001,USA
+HH011,REC011,income,freelance,consulting,900,EUR,2023-12-17,Consulting project payment,bank_transfer,TechStart Berlin,false,,2,Berlin,BE,10115,DEU
+HH012,REC012,expense,childcare,daycare,680,EUR,2024-01-02,January daycare fee,bank_transfer,KinderCare Mitte,true,monthly,3,Berlin,BE,10407,DEU
+HH013,REC013,expense,groceries,vegetables,79.85,GBP,2023-12-22,Weekly groceries veg aisle,debit_card,Tesco,false,,1,Manchester,ENG,M13 9PL,GBR
+HH014,REC014,income,gift,,200,GBP,2023-12-25,Christmas money gift,cash,Grandmother,false,,1,Manchester,ENG,M15 4AA,GBR
+HH015,REC015,expense,healthcare,dental,150,EUR,2023-12-12,Dental checkup fee,credit_card,Smile Dental,false,,2,Munich,BY,80331,DEU
+HH016,REC016,expense,insurance,car,480,EUR,2024-01-09,Annual car insurance premium,bank_transfer,Allianz,true,yearly,1,Munich,BY,80336,DEU
+HH017,REC017,income,salary,,3450,GBP,2023-11-29,Monthly salary payment,bank_transfer,Crown Digital Ltd,true,monthly,2,London,ENG,SW1A 1AA,GBR
+HH018,REC018,expense,education,books,92.3,GBP,2023-12-19,University course books,credit_card,Waterstones,false,,1,London,ENG,W1D 1LL,GBR
+HH019,REC019,income,pension,,2190,EUR,2023-12-31,December pension deposit,bank_transfer,Deutsche Rente,true,monthly,1,Madrid,MD,28001,ESP
+HH020,REC020,expense,miscellaneous,pet_supplies,67.1,EUR,2024-01-08,Pet food and toys,debit_card,TiendAnimal,false,,2,Madrid,MD,28010,ESP
+HH021,REC021,expense,lottery,,5000000,USD,2023-12-31,Powerball jackpot win,check,Powerball Lottery,false,,1,Las Vegas,NV,89109,USA
+HH022,REC022,expense,groceries,dairy,54.22,CAD,2024-01-10,Weekly dairy groceries,debit_card,Loblaws,false,,3,Toronto,ON,M5B 1T8,CAN
+HH023,REC023,income,investment,bonds,180,CAD,2023-12-30,Bond interest payment,bank_transfer,RBC Wealth,false,,2,Toronto,ON,M6J 2K2,CAN
+HH024,REC024,expense,utilities,internet,64.99,CAD,2024-01-06,Monthly internet bill,bank_transfer,Bell Canada,true,monthly,2,Toronto,ON,M4Y 1A8,CAN
+HH025,REC025,income,salary,,720000,JPY,2023-12-27,December salary payment,bank_transfer,Matsuda Group,true,monthly,4,Osaka,27,530-0001,JPN
+HH026,REC026,expense,education,tuition,100000,JPY,2024-01-05,Winter semester tuition,bank_transfer,Osaka University,true,yearly,2,Osaka,27,565-0871,JPN
+HH027,REC027,expense,transportation,gasoline,8000,JPY,2023-12-14,Car fuel purchase,credit_card,ENEOS,false,,2,Osaka,27,541-0042,JPN
+HH028,REC028,income,freelance,graphic_design,15000,JPY,2023-12-19,Logo design project,bank_transfer,Kobe Creative,false,,3,Kobe,28,650-0012,JPN
+HH029,REC029,expense,insurance,health,11000,JPY,2024-01-03,Monthly health insurance,bank_transfer,Japan Health Ins,true,monthly,1,Osaka,27,530-0047,JPN
+HH030,REC030,income,salary,,132000,INR,2023-12-31,Monthly salary deposit,bank_transfer,Wipro Ltd,true,monthly,6,Kolkata,WB,700091,IND
+HH031,REC031,expense,groceries,spices,1800,INR,2024-01-09,Monthly spice shopping,cash,New Market,false,,6,Kolkata,WB,700017,IND
+HH032,REC032,income,gift,,10000,INR,2023-12-25,Festival cash gift,cash,Uncle Surajit,false,,2,Kolkata,WB,700019,IND
+HH033,REC033,expense,childcare,school_fees,35000,INR,2024-01-04,Quarterly school fees,bank_transfer,St. Xavier's School,true,quarterly,12,Kolkata,WB,700016,IND
+HH034,REC034,expense,entertainment,concert,3300,INR,2023-12-23,Rock concert tickets,mobile_payment,BookMyShow,false,,2,Bangalore,KA,560001,IND
+HH035,REC035,income,investment,mutual_fund,7000,INR,2024-01-07,MF redemption payout,bank_transfer,HDFC Mutual Fund,false,,3,Mumbai,MH,400001,IND
+HH036,REC036,expense,utilities,gas,120,AUD,2024-01-06,Monthly gas bill,bank_transfer,AGL Energy,true,monthly,2,Sydney,NSW,2000,AUS
+HH037,REC037,income,salary,,5800,AUD,2023-12-28,December salary credit,bank_transfer,Macquarie Group,true,monthly,2,Sydney,NSW,2000,AUS
+HH038,REC038,expense,entertainment,art_auction,2500000,AUD,2023-12-30,Modern art auction bid,check,Sydney Auction House,false,,1,Sydney,NSW,2000,AUS
+HH039,REC039,expense,miscellaneous,gifts,500,AUD,2023-12-24,Christmas gift shopping,credit_card,Myer,false,,3,Melbourne,VIC,3000,AUS
+HH040,REC040,income,salary,,5200,CAD,2023-12-30,Monthly salary paid,bank_transfer,Toronto Hydro,true,monthly,2,Toronto,ON,M4B 1B3,CAN
+HH041,REC041,expense,healthcare,pharmacy,29.99,USD,2024-01-02,Cold medicine and vitamins,credit_card,Walgreens,false,,1,Dallas,TX,75201,USA
+HH042,REC042,income,rental_income,,3200,USD,2024-01-02,Monthly rental payment,bank_transfer,Elm Street Tenant,true,monthly,1,Los Angeles,CA,90015,USA
+HH043,REC043,expense,rent,,2300,USD,2023-12-01,December house rent,bank_transfer,Westside Realty,true,monthly,4,Los Angeles,CA,90007,USA
+HH044,REC044,expense,transportation,taxi,40.85,USD,2024-01-10,Taxi ride airport,mobile_payment,Yellow Cab,false,,1,San Francisco,CA,94103,USA
+HH045,REC045,income,side_job,pet_sitting,340,USD,2024-01-03,Holiday pet sitting,cash,Neighbor Amy,false,,3,Portland,OR,97209,USA
+HH046,REC046,expense,insurance,home,1120,USD,2024-01-06,Annual home insurance,bank_transfer,State Farm,true,yearly,1,San Diego,CA,92101,USA
+HH047,REC047,expense,utilities,phone,119.99,USD,2024-01-07,Monthly phone bill,bank_transfer,Verizon Wireless,true,monthly,1,San Diego,CA,92110,USA
+HH048,REC048,income,gift,,500,USD,2023-12-26,Birthday cash gift,cash,Aunt Linda,false,,2,Miami,FL,33132,USA
+HH049,REC049,expense,miscellaneous,stationery,25.3,USD,2024-01-11,Office stationery supplies,credit_card,Staples,false,,1,Atlanta,GA,30303,USA
+HH050,REC050,income,freelance,writing,250,USD,2024-01-05,Article writing payment,bank_transfer,Medium Publications,false,,2,Denver,CO,80202,USA
+HH201,REC201,income,salary,,4300,USD,2024-03-31,Salary for March 2024,bank_transfer,Acme Corp,true,monthly,1,Dallas,TX,75201,USA
+HH202,REC202,expense,rent,,1700,USD,2024-04-01,Monthly rent payment April,bank_transfer,Greenwood Apartments,true,monthly,2,Portland,OR,97209,USA
+HH203,REC203,expense,groceries,produce,95.2,USD,2024-04-06,Weekly produce market run,debit_card,Fresh Market,false,,3,San Diego,CA,92103,USA
+HH204,REC204,income,investment,dividends,350.75,GBP,2024-03-25,Quarterly dividend payout,bank_transfer,London Equity Ltd,true,quarterly,2,Manchester,ENG,M1 2AB,GBR
+HH205,REC205,expense,utilities,electricity,110.6,USD,2024-03-28,Electric bill March 2024,bank_transfer,PowerGrid Inc,true,monthly,2,Denver,CO,80203,USA
+HH206,REC206,expense,entertainment,movies,29.99,USD,2024-03-29,Family movie night tickets,credit_card,Cineplex 8,false,,4,Austin,TX,78701,USA
+HH207,REC207,expense,transportation,bus_pass,50,EUR,2024-04-02,Monthly bus pass April,cash,Berlin Transit,true,monthly,1,Berlin,BE,10115,DEU
+HH208,REC208,expense,groceries,dairy,42.75,USD,2024-04-03,Weekly grocery - dairy,debit_card,SuperMart,false,,2,Phoenix,AZ,85012,USA
+HH209,REC209,expense,childcare,nursery,650,EUR,2024-03-27,Nursery fee for March,bank_transfer,Little Steps Nursery,true,monthly,3,Madrid,M,28013,ESP
+HH210,REC210,income,freelance,graphic_design,800,USD,2024-03-20,Freelance design project,mobile_payment,Pixel Studio,false,,1,Chicago,IL,60601,USA
+HH211,REC211,expense,healthcare,pharmacy,32.99,GBP,2024-03-30,Prescription medication,credit_card,HealthPlus Pharmacy,false,,2,London,ENG,SW1A 1AA,GBR
+HH212,REC212,expense,utilities,water,24.8,USD,2024-03-26,Water bill March 2024,bank_transfer,Aqua Services,true,monthly,6,Houston,TX,77002,USA
+HH213,REC213,income,side_job,delivery,320,USD,2024-03-22,Food delivery earnings,other,Dash Delivery,false,,2,Seattle,WA,98101,USA
+HH214,REC214,expense,insurance,health_insurance,410,USD,2024-03-05,Monthly health insurance,bank_transfer,Blue Shield,true,monthly,3,Miami,FL,33130,USA
+HH215,REC215,expense,education,tuition,1500,INR,2024-02-24,Semester tuition payment,bank_transfer,Kolkata College,false,,4,Kolkata,WB,700001,IND
+HH216,REC216,income,rental_income,,2100,USD,2024-03-02,March rental payment received,bank_transfer,Lakeview Tenant,true,monthly,2,San Jose,CA,95112,USA
+HH217,REC217,income,gift,,400,EUR,2024-03-10,Birthday gift from family,cash,Marta Lopez,false,,1,Barcelona,CT,08001,ESP
+HH218,REC218,expense,miscellaneous,,59.5,USD,2024-04-04,Household supplies,credit_card,Target Store,false,,2,Orlando,FL,32801,USA
+HH219,REC219,expense,lottery,,3000000,USD,2024-02-15,Lottery ticket win,check,State Lottery,false,,1,Las Vegas,NV,89109,USA
+HH220,REC220,income,investment,mutual_funds,900,CAD,2024-03-19,Mutual funds quarterly,bank_transfer,Toronto Investments,true,quarterly,2,Toronto,ON,M5H 2N2,CAN
+HH221,REC221,expense,utilities,gas,48.9,USD,2024-03-18,Gas bill for March,bank_transfer,City Gas Group,true,monthly,3,Boston,MA,02118,USA
+HH222,REC222,expense,groceries,meat,71.32,AUD,2024-03-16,Weekly meat purchase,debit_card,Sydney Butcher,false,,2,Sydney,NSW,2000,AUS
+HH223,REC223,income,salary,,5250,USD,2024-04-01,April 2024 salary payment,bank_transfer,Quantum Inc,true,monthly,2,Charlotte,NC,28202,USA
+HH224,REC224,expense,transportation,fuel,120,USD,2024-03-12,Car fuel for March,credit_card,Shell Gas Station,false,,3,Atlanta,GA,30303,USA
+HH225,REC225,expense,education,books,62.4,JPY,2024-02-28,Textbooks for spring term,other,Osaka Books,false,,1,Osaka,27,530-0001,JPN
+HH226,REC226,income,gift,,2000,USD,2024-03-01,Gift from parents for wedding,check,John & Linda Lee,false,,2,San Francisco,CA,94102,USA
+HH227,REC227,expense,insurance,auto_insurance,135,USD,2024-03-25,Auto insurance monthly,bank_transfer,AllState Insurance,true,monthly,2,Cleveland,OH,44113,USA
+HH228,REC228,income,side_job,tutoring,120,USD,2024-03-16,Weekend tutoring sessions,cash,Julia Rivera,false,,1,Philadelphia,PA,19103,USA
+HH229,REC229,expense,healthcare,doctor_visit,80,USD,2024-03-14,Annual health checkup,debit_card,City Clinic,false,,4,Los Angeles,CA,90001,USA
+HH230,REC230,income,freelance,web_development,1500,USD,2024-03-19,Website project completion,bank_transfer,BrightWeb LLC,false,,1,Raleigh,NC,27601,USA
+HH231,REC231,expense,entertainment,concert,145,USD,2024-02-22,Jazz concert tickets,credit_card,Music Hall,false,,2,Minneapolis,MN,55401,USA
+HH232,REC232,expense,miscellaneous,,25.75,USD,2024-03-26,Pet food and supplies,debit_card,PetSmart,false,,3,San Antonio,TX,78205,USA
+HH233,REC233,income,salary,,3900,EUR,2024-03-31,Salary for March 2024,bank_transfer,Munich Tech,true,monthly,2,Munich,BY,80331,DEU
+HH234,REC234,income,rental_income,,1450,USD,2024-03-31,Rental income March 2024,bank_transfer,Main St Tenant,true,monthly,1,Austin,TX,78702,USA
+HH235,REC235,expense,utilities,internet,67.25,USD,2024-03-15,Internet bill March 2024,bank_transfer,Comcast,true,monthly,1,New York,NY,10011,USA
+HH236,REC236,expense,groceries,bakery,18.5,USD,2024-03-09,Bakery and bread,cash,Sunrise Bakery,false,,2,Nashville,TN,37203,USA
+HH237,REC237,income,investment,stocks,1200,USD,2024-03-27,Stock dividends March,bank_transfer,ETrade,false,,2,Salt Lake City,UT,84101,USA
+HH238,REC238,expense,childcare,babysitter,75,USD,2024-03-24,Babysitting for March,other,Emily Clark,false,,2,Cincinnati,OH,45202,USA
+HH239,REC239,expense,entertainment,streaming,15.99,USD,2024-03-10,Online streaming subscription,credit_card,StreamFlix,true,monthly,1,Pittsburgh,PA,15222,USA
+HH240,REC240,income,salary,,6150,USD,2024-04-01,Salary April 2024,bank_transfer,NextGen Media,true,monthly,3,Detroit,MI,48226,USA
+HH241,REC241,expense,insurance,life_insurance,95,USD,2024-03-10,Life insurance premium,bank_transfer,Prudential,true,monthly,2,Baltimore,MD,21201,USA
+HH242,REC242,income,freelance,writing,400,USD,2024-03-15,Freelance article fees,other,Writers Guild,false,,1,Portland,OR,97210,USA
+HH243,REC243,income,gift,,100,USD,2024-03-14,Birthday gift from friend,cash,Mark Johnson,false,,1,Denver,CO,80202,USA
+HH244,REC244,expense,transportation,train,210,USD,2024-03-21,Train tickets spring break,credit_card,Amtrak,false,,3,Sacramento,CA,95814,USA
+HH245,REC245,income,rental_income,,5300,USD,2024-03-01,Rental income multi-unit,bank_transfer,MultiProp Tenant,true,monthly,12,Houston,TX,77005,USA
+HH246,REC246,income,investment,bonds,250,USD,2024-03-05,Bond yield quarterly,bank_transfer,Vanguard Bonds,true,quarterly,3,Jacksonville,FL,32202,USA
+HH247,REC247,expense,education,school_fees,425,USD,2024-03-10,Spring school fees,check,North School,false,,2,Indianapolis,IN,46204,USA
+HH248,REC248,expense,healthcare,dental,220,USD,2024-03-22,Dental cleaning March,credit_card,Smile Dental,false,,1,Columbus,OH,43215,USA
+HH249,REC249,income,freelance,photography,800,USD,2024-03-17,Photography event project,bank_transfer,WeddingPix,false,,1,Dallas,TX,75202,USA
+HH250,REC250,income,side_job,ride_sharing,260,USD,2024-03-20,Rideshare earnings March,mobile_payment,Uber,false,,1,San Diego,CA,92104,USA
+HH101,REC301,income,salary,,3850,USD,2023-08-31,Salary for August,bank_transfer,Crimson Solutions LLC,true,monthly,1,Portland,OR,97209,USA
+HH102,REC302,expense,groceries,produce,127.45,USD,2023-09-01,Weekly produce groceries,debit_card,GreenLeaf Market,false,,2,Cleveland,OH,44115,USA
+HH103,REC303,income,rental_income,,1450,USD,2023-09-01,Rental income for September,bank_transfer,Chloe Ramirez,true,monthly,2,Greenville,SC,29601,USA
+HH104,REC304,expense,utilities,water,42.75,USD,2023-09-11,Water bill for September,bank_transfer,City Water Dept,true,monthly,3,Philadelphia,PA,19103,USA
+HH105,REC305,expense,rent,,2250,USD,2023-09-01,Monthly rent payment,bank_transfer,Brinkley Properties,true,monthly,2,Charlotte,NC,28202,USA
+HH106,REC306,income,side_job,,300,EUR,2023-09-07,Graphic design freelance,bank_transfer,Blue Motion Design,false,,1,Cologne,NW,50667,DEU
+HH107,REC307,expense,entertainment,concert,70,USD,2023-08-19,Concert tickets,credit_card,Live Nation,false,,3,Minneapolis,MN,55401,USA
+HH108,REC308,expense,healthcare,doctor_visit,95,GBP,2023-09-05,Routine doctor checkup,debit_card,Manchester Clinic,false,,2,Manchester,ENG,M16 8HQ,GBR
+HH109,REC309,income,investment,,420,USD,2023-09-10,Quarterly dividend,bank_transfer,Vanguard Funds,true,quarterly,1,Denver,CO,80203,USA
+HH110,REC310,expense,transportation,fuel,56.17,USD,2023-09-10,Fuel for car,credit_card,Shell Gasoline,false,,3,Indianapolis,IN,46204,USA
+HH111,REC311,expense,utilities,electricity,67.8,USD,2023-08-20,August electricity bill,bank_transfer,Duke Energy,true,monthly,4,Cincinnati,OH,45202,USA
+HH112,REC312,expense,childcare,,350,USD,2023-09-01,Monthly daycare payment,check,Little Stars Daycare,true,monthly,2,Orlando,FL,32801,USA
+HH113,REC313,income,freelance,,575,EUR,2023-08-22,Translation project payment,bank_transfer,LangPro GmbH,false,,2,Frankfurt,HE,60313,DEU
+HH114,REC314,expense,insurance,car_insurance,110,USD,2023-09-01,Car insurance monthly,bank_transfer,Progressive Insurance,true,monthly,1,Albuquerque,NM,87102,USA
+HH115,REC315,income,gift,,200,USD,2023-09-04,Birthday gift from mother,cash,Martha Benson,false,,1,Raleigh,NC,27601,USA
+HH116,REC316,expense,education,books,78.6,GBP,2023-09-04,Textbooks for fall semester,credit_card,Uni Bookstore,false,,2,London,ENG,WC1E 6BT,GBR
+HH117,REC317,expense,miscellaneous,,23.49,USD,2023-08-30,Pet supplies and toys,debit_card,PetSmart,false,,1,Boise,ID,83702,USA
+HH118,REC318,expense,groceries,dairy,54.3,USD,2023-08-25,Weekly dairy groceries,credit_card,Kroger,false,,3,Louisville,KY,40202,USA
+HH119,REC319,expense,utilities,gas,38.8,USD,2023-08-21,Monthly gas bill,bank_transfer,Atmos Energy,true,monthly,2,Tulsa,OK,74103,USA
+HH120,REC320,income,investment,,210,CAD,2023-08-17,Dividend earnings,bank_transfer,CIBC Investments,false,,1,Toronto,ON,M5B 2H1,CAN
+HH121,REC321,expense,rent,,1390,EUR,2023-09-01,Apartment rent payment,bank_transfer,Hausverwaltung Klein,true,monthly,2,Berlin,BE,10115,DEU
+HH122,REC322,expense,insurance,health_insurance,180,EUR,2023-09-01,Health insurance premium,bank_transfer,Allianz SE,true,monthly,3,Munich,BY,80331,DEU
+HH123,REC323,income,freelance,,750,INR,2023-08-23,Freelance website project,bank_transfer,Agarwal Solutions,false,,1,Kolkata,WB,700017,IND
+HH124,REC324,expense,healthcare,prescription,24.95,USD,2023-09-06,Prescription refill,cash,Walgreens,false,,1,San Jose,CA,95112,USA
+HH125,REC325,expense,transportation,public_transit,31,USD,2023-08-29,Monthly bus pass,mobile_payment,Metro Transit,false,,2,Columbus,OH,43215,USA
+HH126,REC326,expense,education,tuition,1500,USD,2023-08-28,Fall semester tuition,bank_transfer,State University,false,,4,Tallahassee,FL,32301,USA
+HH127,REC327,income,lottery,,2500000,USD,2023-07-22,Lotto jackpot win,check,MegaMillions,false,,1,Las Vegas,NV,89109,USA
+HH128,REC328,expense,miscellaneous,,44.15,USD,2023-08-26,Household cleaning supplies,debit_card,Target,false,,2,Omaha,NE,68102,USA
+HH129,REC329,income,side_job,,650,AUD,2023-08-18,Weekend catering gig,bank_transfer,Sydney Eats,false,,3,Sydney,NSW,2000,AUS
+HH130,REC330,expense,entertainment,movies,32.5,USD,2023-08-27,Family movie night,credit_card,AMC Theatres,false,,4,San Diego,CA,92101,USA
+HH131,REC331,expense,groceries,meat,92.7,USD,2023-08-28,Weekly meat groceries,debit_card,Whole Foods,false,,2,Salt Lake City,UT,84101,USA
+HH132,REC332,income,salary,,4700,USD,2023-09-01,September salary payment,bank_transfer,BrightPath Corp,true,monthly,2,Buffalo,NY,14203,USA
+HH133,REC333,expense,insurance,home_insurance,52,USD,2023-08-18,Home insurance monthly,bank_transfer,State Farm,true,monthly,3,Phoenix,AZ,85004,USA
+HH134,REC334,expense,childcare,,410,USD,2023-08-30,Daycare payment August,check,Tiny Tots Care,true,monthly,4,Austin,TX,78701,USA
+HH135,REC335,expense,groceries,bakery,33.75,EUR,2023-08-19,Bakery and bread items,cash,Backshop Wagner,false,,1,Hamburg,HH,20095,DEU
+HH136,REC336,income,gift,,100,JPY,2023-09-03,Wedding gift from uncle,other,Takashi Sato,false,,2,Osaka,OSK,530-0001,JPN
+HH137,REC337,expense,education,online_course,199.99,USD,2023-08-24,Online course enrollment,credit_card,Coursera,false,,1,Pittsburgh,PA,15222,USA
+HH138,REC338,income,rental_income,,1100,USD,2023-08-31,Rental for August,bank_transfer,Kelsey Young,true,monthly,2,Sacramento,CA,95814,USA
+HH139,REC339,expense,healthcare,dental,230,USD,2023-08-15,Dental cleaning,credit_card,Bright Smiles Dental,false,,2,Baltimore,MD,21201,USA
+HH140,REC340,income,salary,,5350,USD,2023-09-01,September salary received,bank_transfer,Sunrise Tech Inc.,true,monthly,3,Seattle,WA,98101,USA
+HH141,REC341,expense,transportation,rideshare,18.35,USD,2023-08-23,Uber ride downtown,mobile_payment,Uber,false,,1,Denver,CO,80202,USA
+HH142,REC342,expense,utilities,internet,66,USD,2023-08-22,Internet bill August,bank_transfer,Comcast,true,monthly,1,Richmond,VA,23219,USA
+HH143,REC343,income,investment,,895,USD,2023-09-09,Quarterly investment return,bank_transfer,Fidelity Investments,true,quarterly,1,San Francisco,CA,94111,USA
+HH144,REC344,income,rental_income,,2050,USD,2023-09-01,Monthly rental income,bank_transfer,Julia Price,true,monthly,1,Houston,TX,77002,USA
+HH145,REC345,expense,entertainment,sports,125,USD,2023-08-15,Basketball game tickets,credit_card,Ticketmaster,false,,3,Chicago,IL,60606,USA
+HH146,REC346,expense,miscellaneous,,12.8,USD,2023-08-21,Laundry detergent purchase,debit_card,Walmart,false,,1,Grand Rapids,MI,49503,USA
+HH147,REC347,income,side_job,,480,USD,2023-08-23,Photography side project,bank_transfer,Carter Realty,false,,2,San Antonio,TX,78205,USA
+HH148,REC348,expense,healthcare,vision,72,USD,2023-08-18,Eye exam and glasses,credit_card,Visionworks,false,,1,Reno,NV,89501,USA
+HH149,REC349,expense,rent,,950,JPY,2023-08-01,August apartment rent,bank_transfer,Osaka Rentals,true,monthly,1,Osaka,OSK,530-0022,JPN
+HH150,REC350,income,freelance,,1050,USD,2023-09-02,App development project,bank_transfer,BlueSky Ventures,false,,3,Dallas,TX,75201,USA
+HH151,REC301,income,salary,,3150,USD,2024-03-31,March salary payment,bank_transfer,TechNova Solutions,true,monthly,1,San Diego,CA,92110,USA
+HH152,REC302,expense,groceries,vegetables,89.5,USD,2024-04-10,Grocery shopping at Target,debit_card,Target Superstore,false,,3,Birmingham,AL,35203,USA
+HH153,REC303,expense,utilities,electricity,120.3,USD,2024-03-05,March electricity bill,bank_transfer,Alabama Power,true,monthly,2,Huntsville,AL,35801,USA
+HH154,REC304,income,investment,dividends,540.8,GBP,2024-02-15,Quarterly dividend payout,bank_transfer,Barclays Investments,true,quarterly,2,Leeds,ENG,LS1 3AD,GBR
+HH155,REC305,expense,rent,,1750,USD,2024-03-01,Monthly rent payment,bank_transfer,Bayside Realty,true,monthly,2,Tampa,FL,33602,USA
+HH156,REC306,income,freelance,graphic_design,950,EUR,2024-03-20,Freelance design project,bank_transfer,WebArt Studio,false,,1,Milan,MI,20124,ITA
+HH157,REC307,expense,entertainment,movies,36.9,USD,2024-03-09,Cinema night tickets,credit_card,AMC Theatres,false,,3,Atlanta,GA,30303,USA
+HH158,REC308,income,side_job,,340.75,USD,2024-01-28,Weekend tutoring income,cash,Private Client,false,,2,Denver,CO,80203,USA
+HH159,REC309,expense,transportation,commute,92,USD,2024-04-05,Monthly bus pass purchase,mobile_payment,RTD Denver,true,monthly,1,Denver,CO,80205,USA
+HH160,REC310,expense,utilities,water,45.6,USD,2024-04-02,Water bill April,bank_transfer,Denver Water,true,monthly,4,Denver,CO,80207,USA
+HH161,REC311,income,rental_income,apartment,1200,EUR,2024-02-01,February apartment rent received,bank_transfer,Tenant Müller,true,monthly,2,Cologne,NW,50667,DEU
+HH162,REC312,expense,childcare,daycare,560,USD,2024-03-03,March daycare tuition,check,Little Steps Daycare,true,monthly,4,Portland,OR,97205,USA
+HH163,REC313,income,gift,,250,USD,2024-02-15,Birthday cash gift,cash,Aunt Linda,false,,1,Houston,TX,77002,USA
+HH164,REC314,expense,healthcare,prescriptions,74.19,GBP,2024-03-11,March pharmacy expense,credit_card,Boots UK,false,,2,Bristol,ENG,BS1 5UH,GBR
+HH165,REC315,expense,insurance,health,410,USD,2024-03-06,March health insurance premium,bank_transfer,BlueCross,true,monthly,3,Chicago,IL,60606,USA
+HH166,REC316,expense,education,textbooks,120,EUR,2024-02-21,Semester books purchase,credit_card,Librairie Parisienne,false,,2,Paris,IDF,75005,FRA
+HH167,REC317,expense,groceries,dairy,64.13,USD,2024-03-22,Weekly groceries at Safeway,debit_card,Safeway Market,false,,3,San Jose,CA,95112,USA
+HH168,REC318,expense,miscellaneous,pet_supplies,44.99,USD,2024-03-17,Pet food and toys,credit_card,PetSmart,false,,1,Miami,FL,33130,USA
+HH169,REC319,income,lottery,,2500000,USD,2024-02-28,Lottery jackpot win,check,California Lottery,false,,1,Sacramento,CA,95814,USA
+HH170,REC320,expense,transportation,fuel,68.4,CAD,2024-04-03,Gas station fill up,debit_card,Shell Canada,false,,4,Vancouver,BC,V5K 0A1,CAN
+HH171,REC321,income,investment,bonds,330.1,USD,2024-03-19,Bond interest received,bank_transfer,Fidelity,false,,2,Phoenix,AZ,85004,USA
+HH172,REC322,expense,rent,,1450,USD,2024-02-01,February rent payment,bank_transfer,Desert Rentals,true,monthly,2,Mesa,AZ,85201,USA
+HH173,REC323,expense,utilities,gas,67.42,USD,2024-03-07,Gas bill March,bank_transfer,Southwest Gas,true,monthly,3,Albuquerque,NM,87102,USA
+HH174,REC324,income,salary,,3845,EUR,2024-03-29,End of March salary,bank_transfer,Siemens AG,true,monthly,1,Munich,BY,80331,DEU
+HH175,REC325,expense,insurance,auto,185,USD,2024-02-14,February car insurance,bank_transfer,GEICO,true,monthly,1,Newark,NJ,07102,USA
+HH176,REC326,expense,education,language_course,390,JPY,2024-04-06,Japanese language class fee,other,Nihongo School,false,,2,Osaka,OSK,532-0011,JPN
+HH177,REC327,expense,groceries,meat,76.8,AUD,2024-03-28,Grocery shopping Woolworths,debit_card,Woolworths,false,,2,Perth,WA,6000,AUS
+HH178,REC328,income,salary,,2920,USD,2024-04-01,April salary direct deposit,bank_transfer,FinTech Partners,true,monthly,3,Dallas,TX,75201,USA
+HH179,REC329,expense,entertainment,concert,210,EUR,2024-03-13,Live concert tickets,credit_card,Ticketmaster,false,,1,Barcelona,CAT,08002,ESP
+HH180,REC330,income,freelance,writing,630,INR,2024-03-25,Freelance article payment,other,India Times,false,,1,Kolkata,WB,700001,IND
+HH181,REC331,expense,miscellaneous,stationery,27.8,USD,2024-03-26,Office supplies purchase,credit_card,Staples,false,,2,Seattle,WA,98101,USA
+HH182,REC332,income,rental_income,condo,1750,USD,2024-03-05,Monthly condo rent received,bank_transfer,Tenant Brown,true,monthly,3,Orlando,FL,32801,USA
+HH183,REC333,expense,childcare,babysitting,70,USD,2024-02-23,Babysitting for date night,cash,Mary Smith,false,,3,St. Louis,MO,63101,USA
+HH184,REC334,income,side_job,,485,USD,2024-03-02,Weekend catering gig,cash,Private Client,false,,2,Phoenix,AZ,85016,USA
+HH185,REC335,expense,healthcare,doctor_visit,150,USD,2024-03-08,Annual physical exam,check,Dr. Kim Clinic,false,,1,Boston,MA,02108,USA
+HH186,REC336,expense,transportation,rideshare,35.2,USD,2024-03-21,Uber rides in March,mobile_payment,Uber,false,,1,Austin,TX,78701,USA
+HH187,REC337,income,investment,mutual_funds,215,AUD,2024-03-16,Mutual fund dividend,bank_transfer,Vanguard Australia,false,,1,Sydney,NSW,2000,AUS
+HH188,REC338,expense,utilities,internet,62.9,USD,2024-03-12,Monthly internet bill,bank_transfer,Comcast,true,monthly,2,Philadelphia,PA,19103,USA
+HH189,REC339,income,gift,,1200,USD,2024-02-10,Wedding gift from family,check,Family Members,false,,6,Indianapolis,IN,46204,USA
+HH190,REC340,income,rental_income,house,2250,USD,2024-03-01,March house rent received,bank_transfer,Tenant Evans,true,monthly,4,Las Vegas,NV,89101,USA
+HH191,REC341,expense,education,school_fees,410,USD,2024-03-15,Quarterly school fees,bank_transfer,Greenwood School,true,quarterly,3,Raleigh,NC,27601,USA
+HH192,REC342,expense,miscellaneous,charity,100,USD,2024-03-10,March charity donation,bank_transfer,United Way,false,,1,San Francisco,CA,94105,USA
+HH193,REC343,expense,rent,,2050,USD,2024-03-01,March rent paid,bank_transfer,Citywide Realty,true,monthly,2,Baltimore,MD,21201,USA
+HH194,REC344,income,salary,,3820,USD,2024-03-29,Salary for March,bank_transfer,Retail Group,true,monthly,1,Charlotte,NC,28202,USA
+HH195,REC345,expense,insurance,home,120,USD,2024-03-12,Home insurance March,bank_transfer,Liberty Mutual,true,monthly,2,Nashville,TN,37219,USA
+HH196,REC346,expense,healthcare,specialist_visit,210,USD,2024-03-05,Eye doctor appointment,check,Vision Clinic,false,,3,Minneapolis,MN,55401,USA
+HH197,REC347,income,side_job,,520,USD,2024-03-23,Teaching music lessons,cash,Local Students,false,,1,Fresno,CA,93721,USA
+HH198,REC348,expense,groceries,fruits,38.6,USD,2024-03-18,Fruit shopping at Kroger,debit_card,Kroger Market,false,,1,Cincinnati,OH,45202,USA
+HH199,REC349,income,freelance,translation,1080,EUR,2024-04-08,Translation project payment,bank_transfer,Espana Translations,false,,2,Madrid,MD,28001,ESP
+HH200,REC350,expense,education,course_fees,980,USD,2024-03-29,Online course enrollment,credit_card,Coursera,false,,12,Detroit,MI,48226,USA
