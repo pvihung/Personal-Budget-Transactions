@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User Page</title>
+    <style>
+        div {
+            width: 400px;
+            border: 1px solid green;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+        .message { padding: 8px; margin-bottom: 10px; }
+        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
+        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
+    </style>
+</head>
+<body>
+    <div>
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+            <div class="message success">{{ success }}</div>
+        {% endif %}
+
+
+        <h1>Welcome {{ user_details.user_name }}!</h1>
+
+        <ul>
+            <li><strong>Household size:</strong> {{ user_details.household_size or 'N/A' }}</li>
+            <li><strong>City:</strong> {{ user_details.location_city or 'N/A' }}</li>
+            <li><strong>State:</strong> {{ user_details.location_state or 'N/A' }}</li>
+            <li><strong>Postal code:</strong> {{ user_details.location_postal_code or 'N/A' }}</li>
+            <li><strong>Country:</strong> {{ user_details.location_country or 'N/A' }}</li>
+        </ul>
+
+        <p>
+            <a href="{{ url_for('add_user_details', username=user_details.user_name) }}">Edit details</a> |
+            <a href="{{ url_for('add_records', username=user_details.user_name) }}">Add a record</a> |
+            <a href="{{ url_for('forgot_password', username=user_details.user_name) }}">Forgot / change password</a> |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </p>
+
+    </div>
+
+</body>
+</html>
