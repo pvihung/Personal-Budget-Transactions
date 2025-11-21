@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sign Up Page</title>
+    <style>
+        div {
+            width: 400px;
+            border: 1px solid green;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+        .message { padding: 8px; margin-bottom: 10px; }
+        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
+        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
+    </style>
+</head>
+<body>
+    <div>
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+            <div class="message success">{{ success }}</div>
+        {% endif %}
+    </div>
+
+    <div>
+        <h1>Log In Page</h1>
+        <form method="POST"
+              action="/login">
+            <label for="username">Username</label>
+            <input id="username" type="text"
+                   name="username"
+                   placeholder="Username">
+            <label for="password">Password</label>
+            <input id="password" type="password"
+                   name="password"
+                   placeholder="Password">
+            <button type="submit">submit</button>
+        </form>
+        <!-- Forgot password link uses the username entered above. If none entered, user is prompted. -->
+        <div style="margin-top:8px;">
+            <a href="#" id="forgot-link">Forgot password?</a>
+        </div>
+    </div>
+
+    <script>
+    // When clicked, read the username field and navigate to the forgot-password route.
+    document.addEventListener('DOMContentLoaded', function() {
+        var forgot = document.getElementById('forgot-link');
+        var usernameInput = document.querySelector('input[name="username"]');
+        if (forgot) {
+            forgot.addEventListener('click', function(e) {
+                e.preventDefault();
+                var user = usernameInput && usernameInput.value.trim();
+                if (!user) {
+                    alert('Please enter your username above before clicking Forgot password.');
+                    if (usernameInput) usernameInput.focus();
+                    return;
+                }
+                // redirect to the route that expects the username in the path
+                window.location.href = '/login/forgot_password/' + encodeURIComponent(user);
+            });
+        }
+    });
+    </script>
+
+</body>
+</html>

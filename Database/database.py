@@ -1,10 +1,6 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from sqlalchemy.sql import func
 from sqlalchemy import Column, Integer, String, Numeric, DATETIME, Boolean, ForeignKey
-
-# Import data
-from Database.dataframe import final_df, final_records
 
 # Creating a database (SQLite for simplicity)
 engine = create_engine("sqlite:///App.db")
@@ -46,18 +42,25 @@ class User(Base):
 # Create tables
 Base.metadata.create_all(engine)
 
-# Importing all data into databases
+# Session factory
 Session = sessionmaker(bind=engine)
-session = Session()
 
-try:
-    rows = final_records.to_dict(orient='records')
-    for row in rows:
-        record = Record(**row)
-        session.add(record)
-    session.commit()
-    print(f'{len(rows)} records added to database')
-except Exception as e:
-    print('Error:', e)
-    session.rollback()
+# The dataset import and seeding should not run on module import (it causes side-effects
+# whenever this module is imported). Run it only when executed directly.
+if __name__ == '__main__':
+    # Import final_records here to avoid heavy IO on import
+    from Database.dataframe import final_records
 
+    session = Session()
+    try:
+        rows = final_records.to_dict(orient='records')
+        for row in rows:
+            record = Record(**row)
+            session.add(record)
+        session.commit()
+        print(f'{len(rows)} records added to database')
+    except Exception as e:
+        print('Error:', e)
+        session.rollback()
+    finally:
+        session.close()

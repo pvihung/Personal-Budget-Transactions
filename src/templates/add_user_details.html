@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sign Up Page</title>
+    <style>
+        div {
+            width: 400px;
+            border: 1px solid green;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+        .message { padding: 8px; margin-bottom: 10px; }
+        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
+        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
+    </style>
+</head>
+<body>
+    <div>
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+            <div class="message success">{{ success }}</div>
+        {% endif %}
+
+
+        <h1>Handle GET Request</h1>
+        <form method="GET"
+              action="{{ url_for('add_user_details') }}">
+            <input type="text"
+                   name="household_size"
+                   placeholder="members living together">
+            <input type="text"
+                   name="city"
+                   placeholder="city">
+            <input type="text"
+                   name="state"
+                   placeholder="state">
+            <input type="text"
+                   name="zipcode"
+                   placeholder="zipcode">
+            <input type="text"
+                   name="country"
+                   placeholder="country">
+            <button type="submit">submit</button>
+        </form>
+    </div>
+
+    <div>
+        <h1>Handle POST Request</h1>
+        <form method="POST"
+              action="{{ url_for('add_user_details') }}">
+            <input type="text"
+                   name="household_size"
+                   placeholder="members living together">
+            <input type="text"
+                   name="city"
+                   placeholder="city">
+            <input type="text"
+                   name="state"
+                   placeholder="state">
+            <input type="text"
+                   name="zipcode"
+                   placeholder="zipcode">
+            <input type="text"
+                   name="country"
+                   placeholder="country">
+            <button type="submit">submit</button>
+        </form>
+    </div>
+</body>
+</html>
