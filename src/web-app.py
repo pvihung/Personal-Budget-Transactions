@@ -162,13 +162,7 @@ def logout():
 @app.route("/login/user/<username>", methods=["GET", "POST"])
 @login_required
 def user_page(username):
-    """Show the user's page.
 
-    Notes:
-    - Only supports GET (login() handles POST and redirects here on success).
-    - This function does not perform authentication; consider integrating flask-login
-      (login_user) if you want persistent sessions.
-    """
     db_session = Session()
     try:
         user = db_session.query(User).filter(User.user_name == username).first()
@@ -196,28 +190,9 @@ def user_page(username):
                 return redirect(url_for("add_records", username=username))
             elif action == "change_password":
                 return redirect(url_for("forgot_password", username=username))
-            # else:
-            #     # unknown action - re-render with an error message
-            #     return render_template("user.html", user_details=user, error="Unknown action"), 400
-
-        # GET -> optionally auto-redirect to profile completion page if required
-        # Allow callers to suppress the automatic redirect by adding ?skip_check=1
-        # skip_check = request.args.get("skip_check")
-        # if not skip_check:
-        #     # consider profile incomplete if household_size is None or any location field is missing
-        #     incomplete = (
-        #         user.household_size is None
-        #         or not user.location_city
-        #         or not user.location_state
-        #         or not user.location_postal_code
-        #         or not user.location_country
-        #     )
-        #     if incomplete:
-        #         return redirect(url_for("add_user_details", username=username))
 
         return render_template("user.html", user_details=user)
     except Exception as e:
-        # read-only operation, rollback is harmless but unnecessary
         return render_template("login.html", error=str(e)), 500
     finally:
         db_session.close()
