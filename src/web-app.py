@@ -242,8 +242,6 @@ def add_user_details(username):
         db_session.add(user)
         db_session.commit()
 
-        # After saving, always redirect back to the user page but include skip_check=1
-        # so user_page won't redirect back to this form immediately (avoids loop).
         return redirect(url_for('user_page', username=username, skip_check=1))
 
     except Exception as e:
@@ -257,7 +255,6 @@ def add_user_details(username):
 def update_user():
     pass
 
-# changed route to avoid collision with add_user_details
 @app.route("/user/<username>/records", methods=["GET", "POST"])
 @login_required
 def add_records(username):
