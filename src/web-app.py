@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, render_template,flash
+from flask import Flask, request, render_template, flash
 from markupsafe import escape
 from datetime import datetime
 from decimal import Decimal
-from flask_login import logout_user, login_required
-from flask import redirect, url_for
+from flask_login import login_required, LoginManager, logout_user, login_user, UserMixin, current_user
+from flask import redirect, url_for, session
+import os
 
 from Database.database import Session, Record, User
 
@@ -12,6 +13,39 @@ __version__ = '1.0'
 
 
 app = Flask(__name__)
+# Required for session cookies used by Flask and Flask-Login. Change in production.
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# Small adapter so flask-login can work with the ORM User model
+class FlaskUser(UserMixin):
+    def __init__(self, orm_user):
+        self._orm = orm_user
+
+    def get_id(self):
+        # flask-login requires a str id
+        return str(self._orm.user_id)
+
+    def __getattr__(self, name):
+        # delegate attribute access to the underlying ORM object
+        return getattr(self._orm, name)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    db_session = Session()
+    try:
+        try:
+            uid = int(user_id)
+        except Exception:
+            return None
+        orm_user = db_session.query(User).filter(User.user_id == uid).first()
+        return FlaskUser(orm_user) if orm_user else None
+    finally:
+        db_session.close()
+
 
 @app.route("/")
 def index():
@@ -19,15 +53,16 @@ def index():
 
 
 @app.route("/login/forgot_password/<username>", methods=["POST", "GET"])
+@login_required
 def forgot_password(username):
-    session = Session()
+    db_session = Session()
     try:
         # GET -> show reset form
         if request.method == "GET":
             return render_template("forgot_password.html", user=escape(username))
 
         # POST -> change password
-        user = session.query(User).filter(User.user_name == username).first()
+        user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("forgot_password.html", error="User not found"), 404
 
@@ -37,20 +72,20 @@ def forgot_password(username):
             return render_template("forgot_password.html", user=escape(username), error="Password is required"), 400
 
         user.password = new_password
-        session.add(user)
-        session.commit()
+        db_session.add(user)
+        db_session.commit()
         return redirect(url_for("login"))#, success=f"Password updated for {escape(username)}", user=escape(username))
 
     except Exception as e:
-        session.rollback()
+        db_session.rollback()
         return render_template("forgot_password.html", error=str(e)), 500
     finally:
-        session.close()
+        db_session.close()
 
 
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
-    session = Session()
+    db_session = Session()
     try:
         # GET -> show signup form
         if request.method == 'GET':
@@ -66,27 +101,27 @@ def signup():
             return render_template("signup.html", error="Username and password are required"), 400
 
         # Check for existing username
-        existing_user = session.query(User).filter(User.user_name == username).first()
+        existing_user = db_session.query(User).filter(User.user_name == username).first()
         if existing_user:
             return render_template("signup.html", error="Username already exists"), 400
 
         # Optional: check for existing email
         if email:
-            existing_email = session.query(User).filter(User.email == email).first()
+            existing_email = db_session.query(User).filter(User.email == email).first()
             if existing_email:
                 return render_template("signup.html", error="Email already in use"), 400
 
         # Store the password as provided (no hashing)
         new_user = User(user_name=username, password=password, email=email)
-        session.add(new_user)
-        session.commit()
+        db_session.add(new_user)
+        db_session.commit()
         return redirect(url_for("login"))#, success="Account created successfully for {}".format(escape(username)))
 
     except Exception as e:
-        session.rollback()
+        db_session.rollback()
         return render_template("signup.html", error=str(e)), 500
     finally:
-        session.close()
+        db_session.close()
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -94,19 +129,23 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        session = Session()
+        db_session = Session()
         try:
-            user = session.query(User).filter(User.user_name == username).first()
+            user = db_session.query(User).filter(User.user_name == username).first()
             if not user:
                 return render_template("login.html", error="Invalid username or password"), 401
             # Direct password comparison (no hashing)
             if user.password != password:
                 return render_template("login.html", error="Invalid username or password"), 401
+            # mark the user as authenticated with flask-login
+            login_user(FlaskUser(user))
+            # optionally store username in session for templates or quick access
+            session['username'] = username
             return redirect(url_for("user_page", username=username))
         except Exception as e:
             return render_template("login.html", error=str(e)), 500
         finally:
-            session.close()
+            db_session.close()
     else:
 
         return render_template('login.html')
@@ -116,10 +155,12 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.pop('username', None)
     flash("You have been logged out.")
     return redirect(url_for("index"))
 
-@app.route("/login/user/<username>", methods=["GET"])
+@app.route("/login/user/<username>", methods=["GET", "POST"])
+@login_required
 def user_page(username):
     """Show the user's page.
 
@@ -128,26 +169,66 @@ def user_page(username):
     - This function does not perform authentication; consider integrating flask-login
       (login_user) if you want persistent sessions.
     """
-    session = Session()
+    db_session = Session()
     try:
-        user = session.query(User).filter(User.user_name == username).first()
+        user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             # Return the login page with an error if the user doesn't exist
             return render_template("login.html", error="User not found"), 404
+        # Ensure the currently authenticated user matches the requested user page
+        # This prevents a logged-in user from viewing another user's page by URL tampering
+        try:
+            if current_user.is_authenticated and str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            # If current_user mishandles get_id for any reason, deny access safely
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        # If the user submitted the form, handle the button pressed.
+        if request.method == "POST":
+            action = request.form.get("action_button")
+            if action == "logout":
+                return redirect(url_for("logout"))
+            elif action == "edit_data":
+                # redirect to add_user_details for this user
+                return redirect(url_for("add_user_details", username=username))
+            elif action == "add_record":
+                return redirect(url_for("add_records", username=username))
+            elif action == "change_password":
+                return redirect(url_for("forgot_password", username=username))
+            # else:
+            #     # unknown action - re-render with an error message
+            #     return render_template("user.html", user_details=user, error="Unknown action"), 400
+
+        # GET -> optionally auto-redirect to profile completion page if required
+        # Allow callers to suppress the automatic redirect by adding ?skip_check=1
+        # skip_check = request.args.get("skip_check")
+        # if not skip_check:
+        #     # consider profile incomplete if household_size is None or any location field is missing
+        #     incomplete = (
+        #         user.household_size is None
+        #         or not user.location_city
+        #         or not user.location_state
+        #         or not user.location_postal_code
+        #         or not user.location_country
+        #     )
+        #     if incomplete:
+        #         return redirect(url_for("add_user_details", username=username))
+
         return render_template("user.html", user_details=user)
     except Exception as e:
         # read-only operation, rollback is harmless but unnecessary
         return render_template("login.html", error=str(e)), 500
     finally:
-        session.close()
-
+        db_session.close()
 
 @app.route("/user/<username>/add", methods=["GET", "POST"])
+@login_required
 def add_user_details(username):
-    session = Session()
+    db_session = Session()
     try:
         # Load user once (or return 404 if not found)
-        user = session.query(User).filter(User.user_name == username).first()
+        user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("add_user_details.html", error="User not found"), 404
 
@@ -183,27 +264,31 @@ def add_user_details(username):
             user.location_country = country or None
 
         # user is already tracked by the session; add() is optional but harmless
-        session.add(user)
-        session.commit()
-        return render_template("add_user_details.html", user=user, success=f"Details updated for {escape(username)}")
+        db_session.add(user)
+        db_session.commit()
+
+        # After saving, always redirect back to the user page but include skip_check=1
+        # so user_page won't redirect back to this form immediately (avoids loop).
+        return redirect(url_for('user_page', username=username, skip_check=1))
 
     except Exception as e:
-        session.rollback()
+        db_session.rollback()
         return render_template("add_user_details.html", user=None, error=str(e)), 500
     finally:
-        session.close()
-
+        db_session.close()
 
 @app.route("/user/<username>/update_user_details", methods=["GET", "POST"])
+@login_required
 def update_user():
     pass
 
 # changed route to avoid collision with add_user_details
 @app.route("/user/<username>/records", methods=["GET", "POST"])
+@login_required
 def add_records(username):
-    session = Session()
+    db_session = Session()
     try:
-        user = session.query(User).filter(User.user_name == username).first()
+        user = db_session.query(User).filter(User.user_name == username).first()
 
         if user is None:
             return render_template("add_records.html", error="User not found"), 404
@@ -248,21 +333,23 @@ def add_records(username):
             is_recurring=is_recurring,
             recurrence_interval=recurrence_interval,
         )
-        session.add(record)
-        session.commit()
+        db_session.add(record)
+        db_session.commit()
         return render_template("add_records.html", user=user, success="Record added", record=record)
 
     except Exception as e:
-        session.rollback()
+        db_session.rollback()
         return render_template("add_records.html", error=str(e)), 500
     finally:
-        session.close()
-
+        db_session.close()
 
 @app.route("/user/<username>/delete_user_records", methods=["GET", "POST"])
+@login_required
 def delete_records():
     pass
+
 @app.route("/user/<username>/update_user_records", methods=["GET", "POST"])
+@login_required
 def update_records():
     pass
 
@@ -275,6 +362,7 @@ def get_records():
 def get_transactions():
     pass
 
+"""
 @app.route("/transactions", methods=["GET", "POST"])
 def transactions():
     session = Session()
@@ -330,6 +418,6 @@ def transactions():
         return jsonify({"error": str(e)}), 500
     finally:
         session.close()
-
+"""
 if __name__ == "__main__":
     app.run(debug=True)
