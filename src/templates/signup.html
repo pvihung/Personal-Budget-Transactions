@@ -3,11 +3,53 @@
 <head>
     <title>Sign Up Page</title>
     <style>
-        div {
-            width: 400px;
-            border: 1px solid green;
-            padding: 10px;
-            margin-bottom: 5px;
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            padding: 14px 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        button {
+            margin-top: 15px;
+            align-self: center;
+            padding: 10px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #43a047;
+        }
+        button:active {
+            transform: scale(0.97);
         }
         .message { padding: 8px; margin-bottom: 10px; }
         .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
@@ -25,7 +67,7 @@
     </div>
 
     <div>
-        <h1>Handle POST Request</h1>
+        <h1>SIGN UP</h1>
         <form method="POST"
               action="{{ url_for('signup') }}">
             <input type="text"
@@ -36,8 +78,8 @@
                    placeholder="Password">
              <input type="email"
                    name="email"
-                   placeholder="email">
-            <button type="submit">submit</button>
+                   placeholder="Email">
+            <button type="submit">Submit</button>
         </form>
     </div>
 </body>

@@ -3,11 +3,48 @@
 <head>
     <title>Sign Up Page</title>
     <style>
-        div {
-            width: 400px;
-            border: 1px solid green;
-            padding: 10px;
-            margin-bottom: 5px;
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            padding: 14px 16px;
+            font-size: 1.1rem;
+            border: 1px solid #cfd8dc;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background-color .2s;
+            background: #fff;
+        }
+         button[type="submit"] {
+            margin-top: 8px;
+            align-self: center;
+            padding: 14px 56px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+            box-shadow: 0 6px 14px rgba(67,160,71,0.25);
         }
         .message { padding: 8px; margin-bottom: 10px; }
         .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
@@ -36,7 +73,7 @@
             <input id="password" type="password"
                    name="password"
                    placeholder="Password">
-            <button type="submit">submit</button>
+            <button type="submit">Submit</button>
         </form>
         <!-- Forgot password link uses the username entered above. If none entered, user is prompted. -->
         <div style="margin-top:8px;">
