@@ -325,9 +325,19 @@ def delete_records():
 def update_records():
     pass
 
-@app.route("/get_user_records", methods=["GET", "POST"])
+@app.route("/user/<username>/get_user_records", methods=["GET", "POST"])
+@login_required
 def get_records():
-    pass
+    db_session = Session()
+    try:
+        user_recs = db_session.query(Record).filter(Record.user_id == current_user.user_id).all()
+        return render_template("get_records.html", success="Success" ,user_records=user_recs)
+    except Exception as e:
+        db_session.rollback()
+        return render_template("get_records.html", error=str(e)), 500
+    finally:
+        db_session.close()
+
 
 
 @app.route("/get_transactions", methods=["GET", "POST"])
