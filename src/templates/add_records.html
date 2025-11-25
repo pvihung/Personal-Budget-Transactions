@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Add Record</title>
+    <style>
+        div { width: 480px; border: 1px solid green; padding: 10px; margin-bottom: 8px; }
+        label { display:block; margin-top:8px; }
+        input, select { width:100%; padding:6px; box-sizing: border-box; }
+        .message { padding: 8px; margin-bottom: 10px; }
+        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
+        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
+        .row { display:flex; gap:8px; }
+        .row > div { flex:1; }
+        .small { width:120px; display:inline-block; }
+    </style>
+</head>
+<body>
+
+<div>
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="message success">{{ success }}</div>
+    {% endif %}
+</div>
+
+<div>
+    <h1>Add Record for {{ user.user_name if user else 'user' }}</h1>
+    <form method="POST" action="{{ url_for('add_records', username=user.user_name) }}">
+        <label for="record_type">Record type</label>
+        <select id="record_type" name="record_type">
+            <option value="Expense" {% if record and record.record_type =='Expense' %}selected{% endif %}>Expense</option>
+            <option value="Income" {% if record and record.record_type =='Income' %}selected{% endif %}>Income</option>
+            <option value="Transfer" {% if record and record.record_type =='Transfer' %}selected{% endif %}>Transfer</option>
+        </select>
+
+        <label for="category">Category</label>
+        <input id="category" type="text" name="category" placeholder="Category"
+               value="{{ record.category if record and record.category else '' }}">
+
+        <div class="row">
+            <div>
+                <label for="amount">Amount</label>
+                <input id="amount" type="number" step="0.01" min="0" name="amount"
+                       placeholder="Amount" value="{{ record.amount if record and record.amount is not none else '' }}">
+            </div>
+            <div>
+                <label for="currency">Currency</label>
+                <input id="currency" type="text" name="currency" placeholder="Currency"
+                       value="{{ record.currency if record and record.currency else 'USD' }}">
+            </div>
+        </div>
+
+        <label for="transaction_date">Transaction date</label>
+        <input id="transaction_date" type="datetime-local" name="transaction_date"
+               value="{% if record and record.transaction_date %}{{ record.transaction_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+
+        <label for="payment_method">Payment method</label>
+        <input id="payment_method" type="text" name="payment_method" placeholder="Payment method"
+               value="{{ record.payment_method if record and record.payment_method else '' }}">
+
+        <!-- checkbox first, hidden fallback afterwards so checkbox value overrides when checked -->
+        <label for="is_recurring" style="margin-top:12px;">
+            <input id="is_recurring" type="checkbox" name="is_recurring" value="1"
+                   {% if record and record.is_recurring %}checked{% endif %}>
+            Is recurring
+        </label>
+        <input type="hidden" name="is_recurring" value="0">
+
+        <label for="recurrence_interval">Recurrence interval</label>
+        <input id="recurrence_interval" type="text" name="recurrence_interval" placeholder="e.g. monthly, weekly"
+               value="{{ record.recurrence_interval if record and record.recurrence_interval else '' }}">
+
+        <div style="margin-top:12px; display:flex; gap:8px;">
+            <button type="submit">Add Record</button>
+            <a href="{{ url_for('user_page', username=user.user_name) }}" style="align-self:center; text-decoration:none;">Back to profile</a>
+        </div>
+    </form>
+
+    {% if record %}
+        <h3>Last added record</h3>
+        <div>
+            <strong>Type:</strong> {{ record.record_type }}<br>
+            <strong>Category:</strong> {{ record.category }}<br>
+            <strong>Amount:</strong> {{ record.amount }} {{ record.currency }}<br>
+            <strong>Date:</strong> {{ record.transaction_date }}<br>
+            <strong>Payment:</strong> {{ record.payment_method }}<br>
+            <strong>Recurring:</strong> {{ 'Yes' if record.is_recurring else 'No' }}<br>
+            <strong>Interval:</strong> {{ record.recurrence_interval }}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Simple UX: toggle recurrence_interval disabled state based on checkbox
+(function(){
+    var chk = document.getElementById('is_recurring');
+    var interval = document.getElementById('recurrence_interval');
+    function update(){
+        if(!chk) return;
+        interval.disabled = (chk.checked === false);
+    }
+    if(chk){
+        chk.addEventListener('change', update);
+        update();
+    }
+})();
+</script>
+
+</body>
+</html>

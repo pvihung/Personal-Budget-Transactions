@@ -27,7 +27,7 @@ def forgot_password(username):
             return render_template("forgot_password.html", user=escape(username))
 
         # POST -> change password
-        user = session.query(User).filter(User.username == username).first()
+        user = session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("forgot_password.html", error="User not found"), 404
 
@@ -48,7 +48,6 @@ def forgot_password(username):
         session.close()
 
 
-
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
     session = Session()
@@ -67,7 +66,7 @@ def signup():
             return render_template("signup.html", error="Username and password are required"), 400
 
         # Check for existing username
-        existing_user = session.query(User).filter(User.username == username).first()
+        existing_user = session.query(User).filter(User.user_name == username).first()
         if existing_user:
             return render_template("signup.html", error="Username already exists"), 400
 
@@ -78,7 +77,7 @@ def signup():
                 return render_template("signup.html", error="Email already in use"), 400
 
         # Store the password as provided (no hashing)
-        new_user = User(username=username, password=password, email=email)
+        new_user = User(user_name=username, password=password, email=email)
         session.add(new_user)
         session.commit()
         return redirect(url_for("login"))#, success="Account created successfully for {}".format(escape(username)))
@@ -97,7 +96,7 @@ def login():
         password = request.form.get("password")
         session = Session()
         try:
-            user = session.query(User).filter(User.username == username).first()
+            user = session.query(User).filter(User.user_name == username).first()
             if not user:
                 return render_template("login.html", error="Invalid username or password"), 401
             # Direct password comparison (no hashing)
@@ -131,7 +130,7 @@ def user_page(username):
     """
     session = Session()
     try:
-        user = session.query(User).filter(User.username == username).first()
+        user = session.query(User).filter(User.user_name == username).first()
         if user is None:
             # Return the login page with an error if the user doesn't exist
             return render_template("login.html", error="User not found"), 404
@@ -148,7 +147,7 @@ def add_user_details(username):
     session = Session()
     try:
         # Load user once (or return 404 if not found)
-        user = session.query(User).filter(User.username == username).first()
+        user = session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("add_user_details.html", error="User not found"), 404
 
@@ -204,7 +203,7 @@ def update_user():
 def add_records(username):
     session = Session()
     try:
-        user = session.query(User).filter(User.username == username).first()
+        user = session.query(User).filter(User.user_name == username).first()
 
         if user is None:
             return render_template("add_records.html", error="User not found"), 404
