@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Update Record</title>
+    <style>
+        div { width: 480px; border: 1px solid #666; padding: 10px; margin-bottom: 8px; }
+        label { display:block; margin-top:8px; }
+        input, select { width:100%; padding:6px; box-sizing: border-box; }
+        .message { padding: 8px; margin-bottom: 10px; }
+        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
+        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
+    </style>
+</head>
+<body>
+
+<div>
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="message success">{{ success }}</div>
+    {% endif %}
+</div>
+
+<h1>Update Record for {{ user.user_name if user else 'user' }}</h1>
+<form method="post" action="{{ url_for('update_records', username=user.user_name) }}">
+    <input type="hidden" name="record_id" value="{{ record.record_id }}">
+
+    <label for="record_type">Record type</label>
+    <select id="record_type" name="record_type">
+        <option value="Expense" {% if record.record_type=='Expense' %}selected{% endif %}>Expense</option>
+        <option value="Income" {% if record.record_type=='Income' %}selected{% endif %}>Income</option>
+        <option value="Transfer" {% if record.record_type=='Transfer' %}selected{% endif %}>Transfer</option>
+    </select>
+
+    <label for="category">Category</label>
+    <select id="category" name="category">
+        <option value="childcare" {% if record.category=='childcare' %}selected{% endif %}>childcare</option>
+        <option value="education" {% if record.category=='education' %}selected{% endif %}>education</option>
+        <option value="entertainment" {% if record.category=='entertainment' %}selected{% endif %}>entertainment</option>
+        <option value="freelance" {% if record.category=='freelance' %}selected{% endif %}>freelance</option>
+        <option value="gift" {% if record.category=='gift' %}selected{% endif %}>gift</option>
+        <option value="groceries" {% if record.category=='groceries' %}selected{% endif %}>groceries</option>
+        <option value="healthcare" {% if record.category=='healthcare' %}selected{% endif %}>healthcare</option>
+        <option value="insurance" {% if record.category=='insurance' %}selected{% endif %}>insurance</option>
+        <option value="investment" {% if record.category=='investment' %}selected{% endif %}>investment</option>
+        <option value="lottery" {% if record.category=='lottery' %}selected{% endif %}>lottery</option>
+        <option value="miscellaneous" {% if record.category=='miscellaneous' %}selected{% endif %}>miscellaneous</option>
+        <option value="pension" {% if record.category=='pension' %}selected{% endif %}>pension</option>
+        <option value="rent" {% if record.category=='rent' %}selected{% endif %}>rent</option>
+        <option value="rental_income" {% if record.category=='rental_income' %}selected{% endif %}>rental_income</option>
+        <option value="salary" {% if record.category=='salary' %}selected{% endif %}>salary</option>
+        <option value="side_job" {% if record.category=='side_job' %}selected{% endif %}>side_job</option>
+        <option value="transportation" {% if record.category=='transportation' %}selected{% endif %}>transportation</option>
+        <option value="utilities" {% if record.category=='utilities' %}selected{% endif %}>utilities</option>
+    </select>
+
+    <label for="amount">Amount</label>
+    <input id="amount" type="number" step="0.01" min="0" name="amount" value="{{ record.amount if record and record.amount is not none else '' }}">
+
+    <label for="currency">Currency</label>
+    <input id="currency" type="text" name="currency" value="{{ record.currency if record and record.currency else 'USD' }}">
+
+    <label for="transaction_date">Transaction date</label>
+    <input id="transaction_date" type="text" name="transaction_date" placeholder="yyyy/mm/dd" value="{% if record.transaction_date is string %}{{ record.transaction_date }}{% elif record.transaction_date and record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y/%m/%d') }}{% else %}{{ record.transaction_date }}{% endif %}">
+
+    <label for="payment_method">Payment method</label>
+    <select id="payment_method" name="payment_method">
+        <option value="bank_transfer" {% if record.payment_method=='bank_transfer' %}selected{% endif %}>Bank transfer</option>
+        <option value="cash" {% if record.payment_method=='cash' %}selected{% endif %}>Cash</option>
+        <option value="credit_card" {% if record.payment_method=='credit_card' %}selected{% endif %}>Credit card</option>
+        <option value="debit_card" {% if record.payment_method=='debit_card' %}selected{% endif %}>Debit card</option>
+    </select>
+
+    <!-- hidden fallback + checkbox -->
+    <label>
+        <input type="checkbox" id="is_recurring" name="is_recurring" value="1" {% if record.is_recurring %}checked{% endif %}> Is recurring
+    </label>
+    <input type="hidden" name="is_recurring" value="no">
+
+    <label for="recurrence_interval">Recurrence interval</label>
+    <input id="recurrence_interval" type="text" name="recurrence_interval" value="{{ record.recurrence_interval or '' }}">
+
+    <div style="margin-top:12px; display:flex; gap:8px;">
+        <button type="submit">Save</button>
+        <a href="{{ url_for('get_records', username=user.user_name) }}">Back</a>
+    </div>
+</form>
+
+</body>
+</html>
+

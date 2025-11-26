@@ -37,8 +37,27 @@
         </select>
 
         <label for="category">Category</label>
-        <input id="category" type="text" name="category" placeholder="Category"
-               value="{{ record.category if record and record.category else '' }}">
+        <select id="category" name="category">
+            <option value="" {% if not record or not record.category %}selected{% endif %}>Select category</option>
+            <option value="childcare" {% if record and record.category =='childcare' %}selected{% endif %}>childcare</option>
+            <option value="education" {% if record and record.category =='education' %}selected{% endif %}>education</option>
+            <option value="entertainment" {% if record and record.category =='entertainment' %}selected{% endif %}>entertainment</option>
+            <option value="freelance" {% if record and record.category =='freelance' %}selected{% endif %}>freelance</option>
+            <option value="gift" {% if record and record.category =='gift' %}selected{% endif %}>gift</option>
+            <option value="groceries" {% if record and record.category =='groceries' %}selected{% endif %}>groceries</option>
+            <option value="healthcare" {% if record and record.category =='healthcare' %}selected{% endif %}>healthcare</option>
+            <option value="insurance" {% if record and record.category =='insurance' %}selected{% endif %}>insurance</option>
+            <option value="investment" {% if record and record.category =='investment' %}selected{% endif %}>investment</option>
+            <option value="lottery" {% if record and record.category =='lottery' %}selected{% endif %}>lottery</option>
+            <option value="miscellaneous" {% if record and record.category =='miscellaneous' %}selected{% endif %}>miscellaneous</option>
+            <option value="pension" {% if record and record.category =='pension' %}selected{% endif %}>pension</option>
+            <option value="rent" {% if record and record.category =='rent' %}selected{% endif %}>rent</option>
+            <option value="rental_income" {% if record and record.category =='rental_income' %}selected{% endif %}>rental_income</option>
+            <option value="salary" {% if record and record.category =='salary' %}selected{% endif %}>salary</option>
+            <option value="side_job" {% if record and record.category =='side_job' %}selected{% endif %}>side_job</option>
+            <option value="transportation" {% if record and record.category =='transportation' %}selected{% endif %}>transportation</option>
+            <option value="utilities" {% if record and record.category =='utilities' %}selected{% endif %}>utilities</option>
+        </select>
 
         <div class="row">
             <div>
@@ -54,12 +73,18 @@
         </div>
 
         <label for="transaction_date">Transaction date</label>
-        <input id="transaction_date" type="datetime-local" name="transaction_date"
-               value="{% if record and record.transaction_date %}{{ record.transaction_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+        <!-- Accept yyyy/mm/dd as plain text (server will parse); placeholder shows expected format -->
+        <input id="transaction_date" type="text" name="transaction_date" placeholder="yyyy/mm/dd"
+               value="{% if record and record.transaction_date %}{% if record.transaction_date is string %}{{ record.transaction_date }}{% elif record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y/%m/%d') }}{% else %}{{ record.transaction_date }}{% endif %}{% endif %}">
 
         <label for="payment_method">Payment method</label>
-        <input id="payment_method" type="text" name="payment_method" placeholder="Payment method"
-               value="{{ record.payment_method if record and record.payment_method else '' }}">
+        <select id="payment_method" name="payment_method">
+            <option value="" {% if not record or not record.payment_method %}selected{% endif %}>Select payment method</option>
+            <option value="bank_transfer" {% if record and record.payment_method =='bank_transfer' %}selected{% endif %}>Bank transfer</option>
+            <option value="cash" {% if record and record.payment_method =='cash' %}selected{% endif %}>Cash</option>
+            <option value="credit_card" {% if record and record.payment_method =='credit_card' %}selected{% endif %}>Credit card</option>
+            <option value="debit_card" {% if record and record.payment_method =='debit_card' %}selected{% endif %}>Debit card</option>
+        </select>
 
         <!-- checkbox first, hidden fallback afterwards so checkbox value overrides when checked -->
         <label for="is_recurring" style="margin-top:12px;">
@@ -67,11 +92,14 @@
                    {% if record and record.is_recurring %}checked{% endif %}>
             Is recurring
         </label>
-        <input type="hidden" name="is_recurring" value="0">
+        <!-- When unchecked the hidden field will submit 'no' -->
+        <input type="hidden" name="is_recurring" value="no">
 
         <label for="recurrence_interval">Recurrence interval</label>
         <input id="recurrence_interval" type="text" name="recurrence_interval" placeholder="e.g. monthly, weekly"
                value="{{ record.recurrence_interval if record and record.recurrence_interval else '' }}">
+        <!-- Hidden fallback so recurrence_interval is submitted even when the visible input is disabled -->
+        <input type="hidden" name="recurrence_interval" value="">
 
         <div style="margin-top:12px; display:flex; gap:8px;">
             <button type="submit">Add Record</button>
@@ -85,7 +113,16 @@
             <strong>Type:</strong> {{ record.record_type }}<br>
             <strong>Category:</strong> {{ record.category }}<br>
             <strong>Amount:</strong> {{ record.amount }} {{ record.currency }}<br>
-            <strong>Date:</strong> {{ record.transaction_date }}<br>
+            <strong>Date:</strong>
+            {% if record.transaction_date %}
+                {% if record.transaction_date is string %}
+                    {{ record.transaction_date }}
+                {% elif record.transaction_date.strftime is defined %}
+                    {{ record.transaction_date.strftime('%Y/%m/%d') }}
+                {% else %}
+                    {{ record.transaction_date }}
+                {% endif %}
+            {% endif %}<br>
             <strong>Payment:</strong> {{ record.payment_method }}<br>
             <strong>Recurring:</strong> {{ 'Yes' if record.is_recurring else 'No' }}<br>
             <strong>Interval:</strong> {{ record.recurrence_interval }}

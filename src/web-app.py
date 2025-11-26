@@ -5,6 +5,12 @@ from decimal import Decimal
 from flask_login import login_required, LoginManager, logout_user, login_user, UserMixin, current_user
 from flask import redirect, url_for, session
 import os
+import sys
+
+# Ensure repo root is on sys.path so sibling packages (like Database) can be imported
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 
 from Database.database import Session, Record, User
 
@@ -74,7 +80,7 @@ def forgot_password(username):
         user.password = new_password
         db_session.add(user)
         db_session.commit()
-        return redirect(url_for("login"))#, success=f"Password updated for {escape(username)}", user=escape(username))
+        return redirect(url_for("login"))
 
     except Exception as e:
         db_session.rollback()
@@ -190,6 +196,8 @@ def user_page(username):
                 return redirect(url_for("add_records", username=username))
             elif action == "change_password":
                 return redirect(url_for("forgot_password", username=username))
+            elif action == "view_records":
+                return redirect(url_for("get_records", username=username))
 
         return render_template("user.html", user_details=user)
     except Exception as e:
@@ -278,7 +286,7 @@ def add_records(username):
         recurrence_interval = request.form.get("recurrence_interval")
 
         # Basic validation
-        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method or is_recurring_raw is None or recurrence_interval is None:
+        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method or is_recurring_raw is None:
             return render_template("add_records.html", user=user, error="Missing required fields"), 400
 
         # Coerce types
@@ -287,12 +295,31 @@ def add_records(username):
         except Exception:
             return render_template("add_records.html", user=user, error="amount must be numeric"), 400
 
-        try:
-            transaction_date = datetime.fromisoformat(transaction_date_raw)
-        except Exception:
-            return render_template("add_records.html", user=user, error="transaction_date must be ISO-8601 string"), 400
+        # transaction_date: accept dd/mm/YYYY from the form; if ISO given, fallback to parsing that
+        transaction_date = None
+        if transaction_date_raw:
+            parsed = None
+            # Try yyyy/mm/dd first, then ISO variants and dd/mm/YYYY
+            for fmt in ("%Y/%m/%d", "%Y-%m-%dT%H:%M", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y"):
+                try:
+                    parsed = datetime.strptime(transaction_date_raw, fmt)
+                    break
+                except Exception:
+                    parsed = None
+            if parsed is None:
+                return render_template("add_records.html", user=user, error="transaction_date must be in yyyy/mm/dd or ISO formats"), 400
+            # Normalize to a YYYY/MM/DD string for storage
+            transaction_date = parsed.strftime('%Y/%m/%d')
 
         is_recurring = is_recurring_raw.lower() in ("1", "true", "yes", "on") if isinstance(is_recurring_raw, str) else bool(is_recurring_raw)
+
+        # If the record is recurring, recurrence_interval is required; otherwise default to empty string
+        if is_recurring:
+            if not recurrence_interval:
+                return render_template("add_records.html", user=user, error="recurrence_interval required for recurring records"), 400
+        else:
+            # ensure recurrence_interval is an empty string (DB non-null constraint)
+            recurrence_interval = recurrence_interval or ""
 
         record = Record(
             user_id=user.user_id,
@@ -311,7 +338,9 @@ def add_records(username):
 
     except Exception as e:
         db_session.rollback()
-        return render_template("add_records.html", error=str(e)), 500
+        # ensure we always pass `user` into the template to avoid Jinja 'user' undefined errors
+        user_for_template = locals().get('user', None)
+        return render_template("add_records.html", user=user_for_template, error=str(e)), 500
     finally:
         db_session.close()
 
@@ -322,84 +351,345 @@ def delete_records():
 
 @app.route("/user/<username>/update_user_records", methods=["GET", "POST"])
 @login_required
-def update_records():
-    pass
+def update_records(username):
+    db_session = Session()
+    try:
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("get_records.html", error="User not found", user=None), 404
+
+        # Authorization: ensure current user matches requested page
+        try:
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        if request.method == 'GET':
+            # Expect ?record_id=NN in query string
+            rid = request.args.get('record_id')
+            if not rid:
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No record selected to update')
+            try:
+                rid_int = int(rid)
+            except Exception:
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Invalid record id')
+
+            record = db_session.query(Record).filter(Record.record_id == rid_int, Record.user_id == user.user_id).first()
+            if record is None:
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Record not found'), 404
+
+            return render_template('update_records.html', user=user, record=record)
+
+        # POST -> apply updates
+        record_id = request.form.get('record_id')
+        if not record_id:
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No record id submitted')
+        try:
+            rid_int = int(record_id)
+        except Exception:
+            return render_template('update_records.html', user=user, error='Invalid record id'), 400
+
+        record = db_session.query(Record).filter(Record.record_id == rid_int, Record.user_id == user.user_id).first()
+        if record is None:
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Record not found'), 404
+
+        # Gather form fields
+        record_type = request.form.get('record_type')
+        category = request.form.get('category')
+        amount_raw = request.form.get('amount')
+        currency = request.form.get('currency')
+        transaction_date_raw = request.form.get('transaction_date')
+        payment_method = request.form.get('payment_method')
+        is_recurring_raw = request.form.get('is_recurring')
+        recurrence_interval = request.form.get('recurrence_interval')
+
+        # Basic validation
+        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method or is_recurring_raw is None:
+            return render_template('update_records.html', user=user, record=record, error='Missing required fields'), 400
+
+        # amount
+        try:
+            amount = Decimal(str(amount_raw))
+        except Exception:
+            return render_template('update_records.html', user=user, record=record, error='amount must be numeric'), 400
+
+        # transaction_date: accept yyyy/mm/dd first, then several fallbacks
+        parsed = None
+        for fmt in ("%Y/%m/%d", "%Y-%m-%dT%H:%M", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y"):
+            try:
+                parsed = datetime.strptime(transaction_date_raw, fmt)
+                break
+            except Exception:
+                parsed = None
+        if parsed is None:
+            return render_template('update_records.html', user=user, record=record, error='transaction_date must be yyyy/mm/dd or ISO formats'), 400
+        transaction_date_str = parsed.strftime('%Y/%m/%d')
+
+        is_recurring = is_recurring_raw.lower() in ("1", "true", "yes", "on") if isinstance(is_recurring_raw, str) else bool(is_recurring_raw)
+
+        if is_recurring:
+            if not recurrence_interval:
+                return render_template('update_records.html', user=user, record=record, error='recurrence_interval required for recurring records'), 400
+        else:
+            recurrence_interval = recurrence_interval or ""
+
+        # Apply updates
+        record.record_type = record_type
+        record.category = category
+        record.amount = amount
+        record.currency = currency
+        record.transaction_date = transaction_date_str
+        record.payment_method = payment_method
+        record.is_recurring = is_recurring
+        record.recurrence_interval = recurrence_interval
+
+        db_session.add(record)
+        db_session.commit()
+
+        return render_template('update_records.html', user=user, record=record, success='Record updated')
+
+    except Exception as e:
+        db_session.rollback()
+        user_for_template = locals().get('user', None)
+        return render_template('update_records.html', user=user_for_template, error=str(e)), 500
+    finally:
+        db_session.close()
 
 @app.route("/user/<username>/get_user_records", methods=["GET", "POST"])
 @login_required
-def get_records():
+def get_records(username):
     db_session = Session()
     try:
-        user_recs = db_session.query(Record).filter(Record.user_id == current_user.user_id).all()
-        return render_template("get_records.html", success="Success" ,user_records=user_recs)
+        # Ensure the requested username exists
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("login.html", error="User not found"), 404
+
+        # Prevent a logged-in user from viewing another user's records
+        try:
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        user_recs = db_session.query(Record).filter(Record.user_id == user.user_id).all()
+        return render_template("get_records.html", user_records=user_recs, user=user)
     except Exception as e:
         db_session.rollback()
-        return render_template("get_records.html", error=str(e)), 500
+        # pass user=None so the template can render safely when user lookup failed
+        return render_template("get_records.html", error=str(e), user=None), 500
     finally:
         db_session.close()
 
 
 
-@app.route("/get_transactions", methods=["GET", "POST"])
-def get_transactions():
-    pass
-
-"""
-@app.route("/transactions", methods=["GET", "POST"])
-def transactions():
-    session = Session()
+@app.route("/user/<username>/get_user_records/filter_user_records", methods=["GET", "POST"])
+@login_required
+#filter by record_type, category, transaction date, payment_method, is_recurring, recurrence_intervale
+def filter_user_records(username):
+    db_session = Session()
     try:
-        if request.method == "GET":
-            # return first 100 records as JSON
-            records = session.query(Record).limit(100).all()
-            def serialize(r):
-                return {
-                    "record_id": r.record_id,
-                    "user_id": r.user_id,
-                    "record_type": r.record_type,
-                    "category": r.category,
-                    "amount": float(r.amount) if r.amount is not None else None,
-                    "currency": r.currency,
-                    "transaction_date": r.transaction_date.isoformat() if r.transaction_date else None,
-                    "payment_method": r.payment_method,
-                    "is_recurring": bool(r.is_recurring) if r.is_recurring is not None else None,
-                    "recurrence_interval": r.recurrence_interval,
-                }
-            data = [serialize(r) for r in records]
-            return jsonify(data)
-
-        # POST - create a new record
-        payload = request.get_json(force=True)
-        required = ["user_id", "record_type", "category", "amount", "transaction_date", "payment_method", "is_recurring", "recurrence_interval"]
-        missing = [f for f in required if f not in payload]
-        if missing:
-            return jsonify({"error": "missing fields", "missing": missing}), 400
-
-        # Ensure the referenced user exists to avoid FK constraint errors
-        user = session.get(User, payload.get('user_id'))
+        user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
-            return jsonify({"error": "user_id does not exist"}), 400
+            return render_template("get_records.html", error="User not found"), 404
 
-        # Parse and coerce types
+        # Authorization: ensure the current user matches the requested user's page
         try:
-            payload['transaction_date'] = datetime.fromisoformat(payload['transaction_date'])
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
         except Exception:
-            return jsonify({"error": "transaction_date must be ISO-8601 string"}), 400
-        try:
-            payload['amount'] = Decimal(str(payload['amount']))
-        except Exception:
-            return jsonify({"error": "amount must be numeric"}), 400
-        payload['is_recurring'] = bool(payload.get('is_recurring'))
+            return render_template("login.html", error="Unauthorized access"), 403
 
-        record = Record(**payload)
-        session.add(record)
-        session.commit()
-        return jsonify({"record_id": record.record_id}), 201
+        # Use GET params by default (the template now submits via GET); support POST fallback
+        source = request.args if request.method == "GET" else request.form
+        record_filter = source.get("record_type")
+        category_filter = source.get("category")
+        transaction_date_filter = source.get("transaction_date")
+        payment_method_filter = source.get("payment_method")
+        is_recurring_filter = source.get("is_recurring")
+        recurrence_interval_filter = source.get("recurrence_interval")
+
+        # Build query (do not call .all() until filters applied)
+        q = db_session.query(Record).filter(Record.user_id == user.user_id)
+
+        if record_filter:
+            q = q.filter(Record.record_type == record_filter)
+        if category_filter:
+            q = q.filter(Record.category == category_filter)
+        if payment_method_filter:
+            q = q.filter(Record.payment_method == payment_method_filter)
+        if recurrence_interval_filter:
+            q = q.filter(Record.recurrence_interval == recurrence_interval_filter)
+
+        # transaction_date: expect dd/mm/YYYY from the select
+        if transaction_date_filter:
+            try:
+                # transaction_date is stored as 'YYYY/MM/DD' string; compare raw string equality
+                # validate format first
+                _ = datetime.strptime(transaction_date_filter, "%Y/%m/%d")
+                q = q.filter(Record.transaction_date == transaction_date_filter)
+            except ValueError:
+                return render_template("get_records.html", error="transaction_date must be yyyy/mm/dd"), 400
+
+        # is_recurring: accept true/false/1/0
+        if is_recurring_filter is not None and is_recurring_filter != "":
+            val = str(is_recurring_filter).lower()
+            if val in ("true", "1", "yes", "on"):
+                q = q.filter(Record.is_recurring == True)
+            elif val in ("false", "0", "no", "off"):
+                q = q.filter(Record.is_recurring == False)
+            else:
+                return render_template("get_records.html", error="is_recurring must be true/false"), 400
+
+        user_records = q.order_by(Record.transaction_date.desc()).all()
+
+        # Build distinct lists for dropdowns (prefer server-side lists)
+        record_types = [r[0] for r in db_session.query(Record.record_type).filter(Record.user_id == user.user_id).distinct().all()]
+        categories = [r[0] for r in db_session.query(Record.category).filter(Record.user_id == user.user_id).distinct().all()]
+        payment_methods = [r[0] for r in db_session.query(Record.payment_method).filter(Record.user_id == user.user_id).distinct().all()]
+        recurrence_intervals = [r[0] for r in db_session.query(Record.recurrence_interval).filter(Record.user_id == user.user_id).distinct().all()]
+        # fetch distinct stored transaction_date strings
+        transaction_dates = [r[0] for r in db_session.query(Record.transaction_date).filter(Record.user_id == user.user_id).distinct().all()]
+
+        return render_template(
+            "get_records.html",
+            user=user,
+            user_records=user_records,
+            record_types=record_types,
+            categories=categories,
+            payment_methods=payment_methods,
+            recurrence_intervals=recurrence_intervals,
+            transaction_dates=transaction_dates
+        )
     except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 500
+        db_session.rollback()
+        return render_template("get_records.html", error=str(e), user=None), 500
     finally:
-        session.close()
-"""
+        db_session.close()
+
+@app.route("/user/<username>/get_user_records/search_records_amount", methods=["GET","POST"])
+@login_required
+def search_records_amount(username):
+    db_session = Session()
+    try:
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("login.html", error="User not found"), 404
+
+        try:
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        # read inputs (support POST form and GET fallback)
+        if request.method == 'POST':
+            form = request.form
+        else:
+            form = request.args
+
+        search_input = form.get("search_query", "").strip()
+        min_input = form.get("min_amount", "").strip()
+        max_input = form.get("max_amount", "").strip()
+
+        # If no inputs provided, return with a helpful message
+        if not search_input and not min_input and not max_input:
+            return render_template("get_records.html", error="Provide an exact amount or a min/max range to search", user=user)
+
+        # Helper to normalize and parse Decimal
+        def parse_decimal(s):
+            if s is None or str(s).strip() == "":
+                return None
+            ns = str(s).replace(',', '').strip()
+            try:
+                return Decimal(ns)
+            except Exception:
+                return None
+
+        # If either min or max provided, perform range search
+        if min_input or max_input:
+            min_val = parse_decimal(min_input)
+            max_val = parse_decimal(max_input)
+            if (min_input and min_val is None) or (max_input and max_val is None):
+                return render_template("get_records.html", error="Invalid min or max amount format", user=user), 400
+            if min_val is not None and max_val is not None and min_val > max_val:
+                return render_template("get_records.html", error="min_amount must not be greater than max_amount", user=user), 400
+
+            search_query = db_session.query(Record).filter(Record.user_id == user.user_id)
+            if min_val is not None:
+                search_query = search_query.filter(Record.amount >= min_val)
+            if max_val is not None:
+                search_query = search_query.filter(Record.amount <= max_val)
+            matched = search_query.order_by(Record.transaction_date.desc()).all()
+
+            return render_template("get_records.html", search_user_records=matched, user=user)
+
+        # Otherwise fall back to exact match on search_query
+        if search_input:
+            amt = parse_decimal(search_input)
+            if amt is None:
+                return render_template("get_records.html", error="Invalid amount format", user=user), 400
+            matched = db_session.query(Record).filter(Record.user_id == user.user_id, Record.amount == amt).order_by(Record.transaction_date.desc()).all()
+            return render_template("get_records.html", search_user_records=matched, user=user)
+
+        # Shouldn't reach here but safe fallback
+        return render_template("get_records.html", error="No valid search input provided", user=user)
+    except Exception as e:
+        db_session.rollback()
+        return render_template("get_records.html", error=str(e), user=None), 500
+    finally:
+        db_session.close()
+
+@app.route("/user/<username>/records/bulk", methods=["POST"])
+@login_required
+def bulk_action(username):
+    db_session = Session()
+    try:
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("get_records.html", error="User not found", user=None), 404
+
+        # ensure the current user is allowed to act on this page
+        try:
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        selected = request.form.getlist('selected')  # list of record_id strings
+        action = request.form.get('bulk_action')
+        # normalize to ints
+        ids = []
+        for s in selected:
+            try:
+                ids.append(int(s))
+            except Exception:
+                continue
+
+        if not ids:
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No rows selected')
+
+        if action == 'delete':
+            # delete only records that belong to this user
+            db_session.query(Record).filter(Record.record_id.in_(ids), Record.user_id == user.user_id).delete(synchronize_session=False)
+            db_session.commit()
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), success=f'Deleted {len(ids)} records')
+        elif action == 'update':
+            # For update, require exactly one selected row to edit; redirect to update page with record_id
+            if len(ids) != 1:
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Select exactly one record to update')
+            rid = ids[0]
+            # Redirect to the update route (pass record_id as query param)
+            return redirect(url_for('update_records', username=username) + f'?record_id={rid}')
+        else:
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Unknown bulk action')
+
+    except Exception as e:
+        db_session.rollback()
+        return render_template('get_records.html', user=None, error=str(e)), 500
+    finally:
+        db_session.close()
+
 if __name__ == "__main__":
     app.run(debug=True)
