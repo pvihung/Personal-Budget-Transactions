@@ -57,7 +57,6 @@ def index():
 
 
 @app.route("/login/forgot_password/<username>", methods=["POST", "GET"])
-@login_required
 def forgot_password(username):
     db_session = Session()
     try:
