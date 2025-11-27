@@ -153,7 +153,6 @@
         Clear
     </a>
     {% endif %}
-<!--        <a href="{{ url_for('user_page', username=user.user_name) if user else '#' }}" class="back-btn">Back to Profile</a>-->
 
 </form>
     <!-- User Overview Cards -->
@@ -215,7 +214,7 @@
         <div class="card">
             <div class="card-title">In My Pocket</div>
 
-            {% if pocket_zone == "safe" %}
+            {% if pocket_zone == "Safe Zone" %}
             <div class="zone-box"
                  style="
                     background: #e8f9e8;
@@ -229,7 +228,7 @@
                 Recommended max spending: <strong>${{ recommended_safe_spend | round(2) }}</strong>.
             </div>
 
-            {% elif pocket_zone == "risk" %}
+            {% elif pocket_zone == "Risk Zone" %}
             <div class="zone-box"
                  style="
                     background: #fff7cc;
