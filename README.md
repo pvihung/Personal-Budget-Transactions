@@ -48,18 +48,17 @@ It helps users plan proactively, visualize their financial health, and make conf
 `
 root
 ├── database
-│ └── database.py
-├── database
-│ ├── database.py
-│ └── App.db
+│   ├── database.py
+│   └── App.db
 ├── templates
-│ ├── index.html
-│ ├── dashboard.html
-│ ├── add_transaction.html
-│ ├── edit_transaction.html
-│ └── ...
+│   ├── index.html
+│   ├── dashboard.html
+│   ├── add_transaction.html
+│   ├── edit_transaction.html
+│   └── ...
 ├── src
-│ └── web-app.py 
+│   └── web-app.py
+
 `
 
 ## Usage Workflow
