@@ -13,11 +13,8 @@ _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
+# Import the databases created in Database folder
 from Database.database import Session, Record, User
-
-__author__ = 'Syed Zain'
-__version__ = '1.0'
-
 
 app = Flask(__name__)
 # Required for session cookies used by Flask and Flask-Login. Change in production.
