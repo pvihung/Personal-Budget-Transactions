@@ -174,74 +174,79 @@
     </div>
 </form>
 
-{% if user_records is not defined or user_records|length == 0 %}
-    <p>No records found for this user.</p>
+{# If search results are present, they are rendered above. Skip the main user_records block in that case. #}
+{% if search_user_records is defined %}
+    {# Search results already shown above; do not render the main records listing or bulk actions. #}
 {% else %}
-    <!-- Bulk action form: select rows and perform an action -->
-    <form method="post" action="{{ url_for('bulk_action', username=user.user_name) }}">
-        <div style="margin-bottom:8px;">
-            <button type="submit" name="bulk_action" value="delete" onclick="return confirm('Delete selected records? This cannot be undone.');">Delete selected</button>
-            <button type="submit" name="bulk_action" value="update">Update selected</button>
-        </div>
+    {% if user_records is not defined or user_records|length == 0 %}
+        <p>No records found for this user.</p>
+    {% else %}
+        <!-- Bulk action form: select rows and perform an action -->
+        <form method="post" action="{{ url_for('bulk_action', username=user.user_name) }}">
+            <div style="margin-bottom:8px;">
+                <button type="submit" name="bulk_action" value="delete" onclick="return confirm('Delete selected records? This cannot be undone.');">Delete selected</button>
+                <button type="submit" name="bulk_action" value="update">Update selected</button>
+            </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="select_all" title="Select all" /></th>
-                <th>record_id</th>
-                <th>user_id</th>
-                <th>record_type</th>
-                <th>category</th>
-                <th>amount</th>
-                <th>currency</th>
-                <th>transaction_date</th>
-                <th>payment_method</th>
-                <th>is_recurring</th>
-                <th>recurrence_interval</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for rec in user_records %}
-            <tr>
-                <td>
-                    <input type="checkbox" id="selected-{{ rec.record_id }}" name="selected" value="{{ rec.record_id }}">
-                </td>
-                <td>{{ rec.record_id }}</td>
-                <td>{{ rec.user_id }}</td>
-                <td>{{ rec.record_type }}</td>
-                <td>{{ rec.category }}</td>
-                <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
-                <td>{{ rec.currency or '' }}</td>
-                <td>
-                    {% if rec.transaction_date is not none %}
-                        {% if rec.transaction_date.strftime is defined %}
-                            {{ rec.transaction_date.strftime('%Y/%m/%d') }}
-                        {% else %}
-                            {{ rec.transaction_date }}
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select_all" title="Select all" /></th>
+                    <th>record_id</th>
+                    <th>user_id</th>
+                    <th>record_type</th>
+                    <th>category</th>
+                    <th>amount</th>
+                    <th>currency</th>
+                    <th>transaction_date</th>
+                    <th>payment_method</th>
+                    <th>is_recurring</th>
+                    <th>recurrence_interval</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rec in user_records %}
+                <tr>
+                    <td>
+                        <input type="checkbox" id="selected-{{ rec.record_id }}" name="selected" value="{{ rec.record_id }}">
+                    </td>
+                    <td>{{ rec.record_id }}</td>
+                    <td>{{ rec.user_id }}</td>
+                    <td>{{ rec.record_type }}</td>
+                    <td>{{ rec.category }}</td>
+                    <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
+                    <td>{{ rec.currency or '' }}</td>
+                    <td>
+                        {% if rec.transaction_date is not none %}
+                            {% if rec.transaction_date.strftime is defined %}
+                                {{ rec.transaction_date.strftime('%Y/%m/%d') }}
+                            {% else %}
+                                {{ rec.transaction_date }}
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </td>
-                <td>{{ rec.payment_method }}</td>
-                <td>{{ 'Yes' if rec.is_recurring else 'No' }}</td>
-                <td>{{ rec.recurrence_interval or '' }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    </form>
+                    </td>
+                    <td>{{ rec.payment_method }}</td>
+                    <td>{{ 'Yes' if rec.is_recurring else 'No' }}</td>
+                    <td>{{ rec.recurrence_interval or '' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </form>
 
-    <script>
-        // Select/unselect all checkboxes
-        (function(){
-            var master = document.getElementById('select_all');
-            if(!master) return;
-            master.addEventListener('change', function(){
-                var checked = master.checked;
-                var boxes = document.querySelectorAll('input[name="selected"]');
-                boxes.forEach(function(cb){ cb.checked = checked; });
-            });
-        })();
-    </script>
+        <script>
+            // Select/unselect all checkboxes
+            (function(){
+                var master = document.getElementById('select_all');
+                if(!master) return;
+                master.addEventListener('change', function(){
+                    var checked = master.checked;
+                    var boxes = document.querySelectorAll('input[name="selected"]');
+                    boxes.forEach(function(cb){ cb.checked = checked; });
+                });
+            })();
+        </script>
+    {% endif %}
 {% endif %}
 
 </body>

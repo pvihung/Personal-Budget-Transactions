@@ -27,6 +27,7 @@
         <h1>Welcome {{ user_details.user_name }}!</h1>
 
         <ul>
+            <li><strong>Email:</strong> {{ user_details.email or 'N/A' }}</li>
             <li><strong>Household size:</strong> {{ user_details.household_size or 'N/A' }}</li>
             <li><strong>City:</strong> {{ user_details.location_city or 'N/A' }}</li>
             <li><strong>State:</strong> {{ user_details.location_state or 'N/A' }}</li>
@@ -35,7 +36,12 @@
         </ul>
 
         <form method="POST">
-            <button type="submit" name="action_button" value="edit_data">Add User data</button>
+            {# only offer Add User data if no profile fields are present #}
+            {% set details_present = (user_details.email is not none) or (user_details.household_size is not none) or (user_details.location_city is not none) or (user_details.location_state is not none) or (user_details.location_postal_code is not none) or (user_details.location_country is not none) %}
+            {% if not details_present %}
+                <button type="submit" name="action_button" value="edit_data">Add User data</button>
+            {% endif %}
+            <button type="submit" name="action_button" value="update_details">Update details</button>
             <button type="submit" name="action_button" value="add_record">Add Records</button>
             <button type="submit" name="action_button" value="view_records">View Records</button>
             <button type="submit" name="action_button" value="logout">Log Out</button>

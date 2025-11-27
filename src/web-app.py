@@ -192,6 +192,9 @@ def user_page(username):
             elif action == "edit_data":
                 # redirect to add_user_details for this user
                 return redirect(url_for("add_user_details", username=username))
+            elif action == "update_details":
+                # redirect to the update user details page
+                return redirect(url_for("update_user", username=username))
             elif action == "add_record":
                 return redirect(url_for("add_records", username=username))
             elif action == "change_password":
@@ -199,7 +202,10 @@ def user_page(username):
             elif action == "view_records":
                 return redirect(url_for("get_records", username=username))
 
-        return render_template("user.html", user_details=user)
+        # Allow passing success/error messages via query params when redirected
+        success = request.args.get('success')
+        error = request.args.get('error')
+        return render_template("user.html", user_details=user, success=success, error=error)
     except Exception as e:
         return render_template("login.html", error=str(e)), 500
     finally:
@@ -214,6 +220,20 @@ def add_user_details(username):
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("add_user_details.html", error="User not found"), 404
+
+        # If user already has profile details set, disallow "add" and redirect to update
+        # Consider the profile 'set' if any of these fields are non-null
+        details_present = any([
+            user.email is not None,
+            user.household_size is not None,
+            user.location_city is not None,
+            user.location_state is not None,
+            user.location_postal_code is not None,
+            user.location_country is not None,
+        ])
+        if details_present:
+            # Redirect to the update page where edits are allowed
+            return redirect(url_for('update_user', username=username, error='Profile already initialized; use Update Details'))
 
         # GET -> show form populated with current values
         if request.method == 'GET':
@@ -260,8 +280,72 @@ def add_user_details(username):
 
 @app.route("/user/<username>/update_user_details", methods=["GET", "POST"])
 @login_required
-def update_user():
-    pass
+def update_user(username):
+    db_session = Session()
+    try:
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("login.html", error="User not found"), 404
+
+        # Authorization: ensure the current user matches requested user
+        try:
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
+                return render_template("login.html", error="Unauthorized access"), 403
+        except Exception:
+            return render_template("login.html", error="Unauthorized access"), 403
+
+        # GET -> show the update form pre-populated (also show query-string messages)
+        if request.method == 'GET':
+            error_msg = request.args.get('error')
+            success_msg = request.args.get('success')
+            return render_template('update_user_details.html', user=user, error=error_msg, success=success_msg)
+
+        # POST -> apply updates to existing fields
+        household_size_raw = request.form.get('household_size')
+        if household_size_raw is not None and household_size_raw != '':
+            try:
+                household_size = int(float(household_size_raw))
+            except Exception:
+                return render_template('update_user_details.html', user=user, error='household_size must be a number'), 400
+            user.household_size = household_size
+
+        # Other optional fields (allow empty string to clear the value)
+        city = request.form.get('city')
+        state = request.form.get('state')
+        zipcode = request.form.get('zipcode')
+        country = request.form.get('country')
+        email = request.form.get('email')
+
+        if city is not None:
+            user.location_city = city or None
+        if state is not None:
+            user.location_state = state or None
+        if zipcode is not None:
+            user.location_postal_code = zipcode or None
+        if country is not None:
+            user.location_country = country or None
+
+        # Email uniqueness check: trim and, if non-empty, ensure no other user has it
+        if email is not None:
+            email = email.strip() or None
+            if email is not None:
+                # check for another user with this email
+                existing = db_session.query(User).filter(User.email == email, User.user_id != user.user_id).first()
+                if existing:
+                    return render_template('update_user_details.html', user=user, error='Email already in use'), 400
+            user.email = email
+
+        db_session.add(user)
+        db_session.commit()
+
+        # Redirect back to the user page with a success message
+        return redirect(url_for('user_page', username=username, success='Profile updated'))
+
+    except Exception as e:
+        db_session.rollback()
+        return render_template('update_user_details.html', user=None, error=str(e)), 500
+    finally:
+        db_session.close()
 
 @app.route("/user/<username>/records", methods=["GET", "POST"])
 @login_required
@@ -344,10 +428,6 @@ def add_records(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/delete_user_records", methods=["GET", "POST"])
-@login_required
-def delete_records():
-    pass
 
 @app.route("/user/<username>/update_user_records", methods=["GET", "POST"])
 @login_required
