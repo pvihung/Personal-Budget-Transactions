@@ -1,56 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>User Page</title>
-    <style>
-        div {
-            width: 400px;
-            border: 1px solid green;
-            padding: 10px;
-            margin-bottom: 5px;
-        }
-        .message { padding: 8px; margin-bottom: 10px; }
-        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
-        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
-    </style>
-</head>
-<body>
-    <div>
-        {% if error %}
-            <div class="message error">{{ error }}</div>
+{% extends "base.html" %}
+
+{% block title %}User Page{% endblock %}
+
+{% block content %}
+<div>
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="message success">{{ success }}</div>
+    {% endif %}
+
+    <h1>Welcome {{ user_details.user_name }}!</h1>
+
+    <ul>
+        <li><strong>Email:</strong> {{ user_details.email or 'N/A' }}</li>
+        <li><strong>Household size:</strong> {{ user_details.household_size or 'N/A' }}</li>
+        <li><strong>City:</strong> {{ user_details.location_city or 'N/A' }}</li>
+        <li><strong>State:</strong> {{ user_details.location_state or 'N/A' }}</li>
+        <li><strong>Postal code:</strong> {{ user_details.location_postal_code or 'N/A' }}</li>
+        <li><strong>Country:</strong> {{ user_details.location_country or 'N/A' }}</li>
+    </ul>
+
+    <form method="POST">
+        {# Determine whether details exist in DB #}
+        {% set details_present = (user_details.email is not none) or (user_details.household_size is not none) or (user_details.location_city is not none) or (user_details.location_state is not none) or (user_details.location_postal_code is not none) or (user_details.location_country is not none) %}
+
+        {# Prefer the force_add_profile flag if provided by the view (set on signup) #}
+        {% set force_add = (force_add_profile is defined and force_add_profile) %}
+
+        {% if force_add %}
+            <div class="meta">Please add your profile details to complete account setup.</div>
         {% endif %}
-        {% if success %}
-            <div class="message success">{{ success }}</div>
-        {% endif %}
 
-
-        <h1>Welcome {{ user_details.user_name }}!</h1>
-
-        <ul>
-            <li><strong>Email:</strong> {{ user_details.email or 'N/A' }}</li>
-            <li><strong>Household size:</strong> {{ user_details.household_size or 'N/A' }}</li>
-            <li><strong>City:</strong> {{ user_details.location_city or 'N/A' }}</li>
-            <li><strong>State:</strong> {{ user_details.location_state or 'N/A' }}</li>
-            <li><strong>Postal code:</strong> {{ user_details.location_postal_code or 'N/A' }}</li>
-            <li><strong>Country:</strong> {{ user_details.location_country or 'N/A' }}</li>
-        </ul>
-
-        <form method="POST">
-            {# only offer Add User data if no profile fields are present #}
-            {% set details_present = (user_details.email is not none) or (user_details.household_size is not none) or (user_details.location_city is not none) or (user_details.location_state is not none) or (user_details.location_postal_code is not none) or (user_details.location_country is not none) %}
-            {% if not details_present %}
-                <button type="submit" name="action_button" value="edit_data">Add User data</button>
+        <div class="controls">
+            {% if not details_present or force_add %}
+                <button class="btn" type="submit" name="action_button" value="edit_data">Add User data</button>
+            {% else %}
+                <button class="btn" type="submit" name="action_button" value="update_details">Update details</button>
             {% endif %}
-            <button type="submit" name="action_button" value="update_details">Update details</button>
-            <button type="submit" name="action_button" value="add_record">Add Records</button>
-            <button type="submit" name="action_button" value="view_records">View Records</button>
-            <button type="submit" name="action_button" value="logout">Log Out</button>
-            <button type="submit" name="action_button" value="change_password">Forgot or Change Password</button>
-            <button type="submit" name="action_button" value="dashboard">Dashboard</button>
-        </form>
 
-
-    </div>
-
-</body>
-</html>
+            <div class="actions">
+                <button class="btn" type="submit" name="action_button" value="add_record">Add Records</button>
+                <button class="btn secondary" type="submit" name="action_button" value="view_records">View Records</button>
+                <button class="btn secondary" type="submit" name="action_button" value="dashboard">Dashboard</button>
+                <button class="btn secondary" type="submit" name="action_button" value="logout">Log Out</button>
+                <button class="btn secondary" type="submit" name="action_button" value="change_password">Forgot or Change Password</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

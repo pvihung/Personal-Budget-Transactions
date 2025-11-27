@@ -1,20 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Sign Up Page</title>
-    <style>
-        div {
-            width: 400px;
-            border: 1px solid green;
-            padding: 10px;
-            margin-bottom: 5px;
-        }
-        .message { padding: 8px; margin-bottom: 10px; }
-        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
-        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Add User Details — In My Pocket{% endblock %}
+
+{% block content %}
     <div>
         {% if error %}
             <div class="message error">{{ error }}</div>
@@ -26,32 +13,26 @@
 
     <div>
         <h1>Add User Details</h1>
-        <form method="POST"
-              action="{{url_for('add_user_details', username = user.user_name)}}">
-            <label for="household_size">household size</label>
-            <input id="household_size" type="number" min="0"
-                   name="household_size"
-                   placeholder="household_size">
-            <label for="city">city</label>
-            <input id="city" type="text"
-                   name="city"
-                   placeholder="city">
-            <label for="state">state</label>
-            <input id="state" type="text"
-                   name="state"
-                   placeholder="state">
-            <label for="zipcode">zipcode</label>
-            <input id="zipcode" type="text"
-                   name="zipcode"
-                   placeholder="zipcode">
-            <label for="country">country</label>
-            <input id="country" type="text"
-                   name="country"
-                   placeholder="country">
-            <button type="submit">submit</button>
+        <form method="POST" action="{{ url_for('add_user_details', username=user.user_name) }}">
+            <label for="household_size">Household size</label>
+            <input id="household_size" type="number" min="0" name="household_size" placeholder="household size" value="{{ request.form.get('household_size','') }}">
+
+            <label for="city">City</label>
+            <input id="city" type="text" name="city" placeholder="city" value="{{ request.form.get('city','') }}">
+
+            <label for="state">State</label>
+            <input id="state" type="text" name="state" placeholder="state" value="{{ request.form.get('state','') }}">
+
+            <label for="zipcode">Zip code</label>
+            <input id="zipcode" type="text" name="zipcode" placeholder="zipcode" value="{{ request.form.get('zipcode','') }}">
+
+            <label for="country">Country</label>
+            <input id="country" type="text" name="country" placeholder="country" value="{{ request.form.get('country','') }}">
+
+            <div class="actions" style="margin-top:10px">
+                <button class="btn" type="submit">Submit</button>
+                <a class="btn secondary" href="{{ url_for('user_page', username=user.user_name) }}">Back</a>
+            </div>
         </form>
     </div>
-
-
-</body>
-</html>
+{% endblock %}

@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from sqlalchemy import Column, Integer, String, Numeric, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
 
 # Creating a database (SQLite for simplicity)
 engine = create_engine("sqlite:///App.db")
@@ -19,8 +19,6 @@ class Record(Base):
     currency = Column(String)
     transaction_date = Column(String, nullable=False)
     payment_method = Column(String, nullable=False)
-    is_recurring = Column(Boolean)
-    recurrence_interval = Column(String)
 
     user = relationship("User", back_populates="records")
 

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}In My Pocket — Personal Budget{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    {% block styles %}
+    <style>
+        :root{
+            --bg:#f4f7fb;
+            --card:#ffffff;
+            --muted:#6b7280;
+            --accent:#2563eb;
+            --accent-2:#10b981;
+            --radius:12px;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        }
+        html,body{height:100%;margin:0;background:linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);}
+        .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px}
+        .card{background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(16,24,40,0.08);max-width:880px;width:100%;padding:36px;display:flex;gap:24px;align-items:center}
+        .brand{flex:1}
+        .brand h1{margin:0;font-weight:700;font-size:28px;color:#0f172a}
+        .brand p{margin:10px 0 18px;color:var(--muted);line-height:1.5}
+        .actions{display:flex;gap:12px}
+        .btn{display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:600}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-outline{border:1px solid rgba(15,23,42,0.08);background:transparent;color:#0f172a}
+        .info{flex:1;text-align:right}
+        .info h2{margin:0;font-size:20px;color:#111827}
+        .info p{margin:10px 0 0;color:var(--muted)}
+        .features{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap}
+        .feature{background:#f8fafc;padding:10px 12px;border-radius:10px;font-size:14px;color:#065f46}
+        footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+        @media (max-width:720px){
+            .card{flex-direction:column;text-align:center}
+            .info{text-align:center}
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <div class="wrap">
+        <div class="card {% block card_class %}{% endblock %}">
+            {% block content %}
+            <div class="brand">
+                <h1>In My Pocket</h1>
+                <p>Track your expenses, savings, and goals — and see how much cash you actually have left in your pocket. Simple, private, and designed for everyday budgeting.</p>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="{{ url_for('signup') }}">Create account</a>
+                    <a class="btn btn-outline" href="{{ url_for('login') }}">Log in</a>
+                </div>
+
+                <div class="features" aria-hidden="true">
+                    <span class="feature">Expense tracking</span>
+                    <span class="feature">Savings & goals</span>
+                    <span class="feature">Visual insights</span>
+                </div>
+            </div>
+
+            <div class="info">
+                <h2>Designed for clarity</h2>
+                <p>Fast, minimal UI with exportable records and per-user privacy. Works offline and on mobile.</p>
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='140'><rect rx='10' width='100%' height='100%' fill='%23eef2ff'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='14'>Your financial snapshot</text></svg>" alt="illustration" style="margin-top:16px;border-radius:8px;max-width:100%">
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+
+    <footer>
+        <div>© {{ current_year if current_year is defined else '' }} In My Pocket — Built with care</div>
+    </footer>
+</body>
+</html>

@@ -5,7 +5,7 @@ from decimal import Decimal
 from flask_login import login_required, LoginManager, logout_user, login_user, UserMixin, current_user
 from flask import redirect, url_for, session
 import os
-from sqlalchemy import func, extract, case
+from sqlalchemy import func, case
 import sys
 
 # Ensure repo root is on sys.path so sibling packages (like Database) can be imported
@@ -366,11 +366,9 @@ def add_records(username):
         currency = request.form.get("currency")
         transaction_date_raw = request.form.get("transaction_date")
         payment_method = request.form.get("payment_method")
-        is_recurring_raw = request.form.get("is_recurring")
-        recurrence_interval = request.form.get("recurrence_interval")
 
         # Basic validation
-        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method or is_recurring_raw is None:
+        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method:
             return render_template("add_records.html", user=user, error="Missing required fields"), 400
 
         # Coerce types
@@ -395,16 +393,7 @@ def add_records(username):
             # Normalize to a YYYY/MM/DD string for storage
             transaction_date = parsed.strftime('%Y/%m/%d')
 
-        is_recurring = is_recurring_raw.lower() in ("1", "true", "yes", "on") if isinstance(is_recurring_raw, str) else bool(is_recurring_raw)
-
-        # If the record is recurring, recurrence_interval is required; otherwise default to empty string
-        if is_recurring:
-            if not recurrence_interval:
-                return render_template("add_records.html", user=user, error="recurrence_interval required for recurring records"), 400
-        else:
-            # ensure recurrence_interval is an empty string (DB non-null constraint)
-            recurrence_interval = recurrence_interval or ""
-
+        # Create record (no recurring fields)
         record = Record(
             user_id=user.user_id,
             record_type=record_type,
@@ -413,8 +402,6 @@ def add_records(username):
             currency=currency,
             transaction_date=transaction_date,
             payment_method=payment_method,
-            is_recurring=is_recurring,
-            recurrence_interval=recurrence_interval,
         )
         db_session.add(record)
         db_session.commit()
@@ -449,22 +436,22 @@ def update_records(username):
             # Expect ?record_id=NN in query string
             rid = request.args.get('record_id')
             if not rid:
-                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No record selected to update')
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='No record selected to update')
             try:
                 rid_int = int(rid)
             except Exception:
-                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Invalid record id')
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Invalid record id')
 
             record = db_session.query(Record).filter(Record.record_id == rid_int, Record.user_id == user.user_id).first()
             if record is None:
-                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Record not found'), 404
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Record not found'), 404
 
             return render_template('update_records.html', user=user, record=record)
 
         # POST -> apply updates
         record_id = request.form.get('record_id')
         if not record_id:
-            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No record id submitted')
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='No record id submitted')
         try:
             rid_int = int(record_id)
         except Exception:
@@ -472,7 +459,7 @@ def update_records(username):
 
         record = db_session.query(Record).filter(Record.record_id == rid_int, Record.user_id == user.user_id).first()
         if record is None:
-            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Record not found'), 404
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Record not found'), 404
 
         # Gather form fields
         record_type = request.form.get('record_type')
@@ -481,11 +468,9 @@ def update_records(username):
         currency = request.form.get('currency')
         transaction_date_raw = request.form.get('transaction_date')
         payment_method = request.form.get('payment_method')
-        is_recurring_raw = request.form.get('is_recurring')
-        recurrence_interval = request.form.get('recurrence_interval')
 
         # Basic validation
-        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method or is_recurring_raw is None:
+        if not record_type or not category or not amount_raw or not transaction_date_raw or not payment_method:
             return render_template('update_records.html', user=user, record=record, error='Missing required fields'), 400
 
         # amount
@@ -506,14 +491,6 @@ def update_records(username):
             return render_template('update_records.html', user=user, record=record, error='transaction_date must be yyyy/mm/dd or ISO formats'), 400
         transaction_date_str = parsed.strftime('%Y/%m/%d')
 
-        is_recurring = is_recurring_raw.lower() in ("1", "true", "yes", "on") if isinstance(is_recurring_raw, str) else bool(is_recurring_raw)
-
-        if is_recurring:
-            if not recurrence_interval:
-                return render_template('update_records.html', user=user, record=record, error='recurrence_interval required for recurring records'), 400
-        else:
-            recurrence_interval = recurrence_interval or ""
-
         # Apply updates
         record.record_type = record_type
         record.category = category
@@ -521,8 +498,6 @@ def update_records(username):
         record.currency = currency
         record.transaction_date = transaction_date_str
         record.payment_method = payment_method
-        record.is_recurring = is_recurring
-        record.recurrence_interval = recurrence_interval
 
         db_session.add(record)
         db_session.commit()
@@ -547,7 +522,21 @@ def get_records(username):
             return render_template("login.html", error="User not found"), 404
 
         user_recs = db_session.query(Record).filter(Record.user_id == user.user_id).all()
-        return render_template("get_records.html", user_records=user_recs, user=user)
+        # Build distinct lists for the filter dropdowns so the template can render options
+        record_types = [r[0] for r in db_session.query(Record.record_type).filter(Record.user_id == user.user_id).distinct().all()]
+        categories = [r[0] for r in db_session.query(Record.category).filter(Record.user_id == user.user_id).distinct().all()]
+        payment_methods = [r[0] for r in db_session.query(Record.payment_method).filter(Record.user_id == user.user_id).distinct().all()]
+        transaction_dates = [r[0] for r in db_session.query(Record.transaction_date).filter(Record.user_id == user.user_id).distinct().all()]
+
+        return render_template(
+            "get_records.html",
+            user_records=user_recs,
+            user=user,
+            record_types=record_types,
+            categories=categories,
+            payment_methods=payment_methods,
+            transaction_dates=transaction_dates,
+        )
     except Exception as e:
         db_session.rollback()
         # pass user=None so the template can render safely when user lookup failed
@@ -837,7 +826,7 @@ def dashboard(username):
 
 @app.route("/user/<username>/get_user_records/filter_user_records", methods=["GET", "POST"])
 @login_required
-#filter by record_type, category, transaction date, payment_method, is_recurring, recurrence_intervale
+#filter by record_type, category, transaction date, payment_method
 def filter_user_records(username):
     db_session = Session()
     try:
@@ -858,8 +847,6 @@ def filter_user_records(username):
         category_filter = source.get("category")
         transaction_date_filter = source.get("transaction_date")
         payment_method_filter = source.get("payment_method")
-        is_recurring_filter = source.get("is_recurring")
-        recurrence_interval_filter = source.get("recurrence_interval")
 
         # Build query (do not call .all() until filters applied)
         q = db_session.query(Record).filter(Record.user_id == user.user_id)
@@ -870,8 +857,6 @@ def filter_user_records(username):
             q = q.filter(Record.category == category_filter)
         if payment_method_filter:
             q = q.filter(Record.payment_method == payment_method_filter)
-        if recurrence_interval_filter:
-            q = q.filter(Record.recurrence_interval == recurrence_interval_filter)
 
         # transaction_date: expect dd/mm/YYYY from the select
         if transaction_date_filter:
@@ -883,23 +868,12 @@ def filter_user_records(username):
             except ValueError:
                 return render_template("get_records.html", error="transaction_date must be yyyy/mm/dd"), 400
 
-        # is_recurring: accept true/false/1/0
-        if is_recurring_filter is not None and is_recurring_filter != "":
-            val = str(is_recurring_filter).lower()
-            if val in ("true", "1", "yes", "on"):
-                q = q.filter(Record.is_recurring == True)
-            elif val in ("false", "0", "no", "off"):
-                q = q.filter(Record.is_recurring == False)
-            else:
-                return render_template("get_records.html", error="is_recurring must be true/false"), 400
-
         user_records = q.order_by(Record.transaction_date.desc()).all()
 
         # Build distinct lists for dropdowns (prefer server-side lists)
         record_types = [r[0] for r in db_session.query(Record.record_type).filter(Record.user_id == user.user_id).distinct().all()]
         categories = [r[0] for r in db_session.query(Record.category).filter(Record.user_id == user.user_id).distinct().all()]
         payment_methods = [r[0] for r in db_session.query(Record.payment_method).filter(Record.user_id == user.user_id).distinct().all()]
-        recurrence_intervals = [r[0] for r in db_session.query(Record.recurrence_interval).filter(Record.user_id == user.user_id).distinct().all()]
         # fetch distinct stored transaction_date strings
         transaction_dates = [r[0] for r in db_session.query(Record.transaction_date).filter(Record.user_id == user.user_id).distinct().all()]
 
@@ -910,7 +884,6 @@ def filter_user_records(username):
             record_types=record_types,
             categories=categories,
             payment_methods=payment_methods,
-            recurrence_intervals=recurrence_intervals,
             transaction_dates=transaction_dates
         )
     except Exception as e:
@@ -967,6 +940,7 @@ def search_records_amount(username):
             if min_val is not None and max_val is not None and min_val > max_val:
                 return render_template("get_records.html", error="min_amount must not be greater than max_amount", user=user), 400
 
+            # perform the range query and return results
             search_query = db_session.query(Record).filter(Record.user_id == user.user_id)
             if min_val is not None:
                 search_query = search_query.filter(Record.amount >= min_val)
@@ -1019,28 +993,42 @@ def bulk_action(username):
                 continue
 
         if not ids:
-            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='No rows selected')
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='No rows selected')
 
         if action == 'delete':
             # delete only records that belong to this user
             db_session.query(Record).filter(Record.record_id.in_(ids), Record.user_id == user.user_id).delete(synchronize_session=False)
             db_session.commit()
-            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), success=f'Deleted {len(ids)} records')
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), success=f'Deleted {len(ids)} records')
         elif action == 'update':
             # For update, require exactly one selected row to edit; redirect to update page with record_id
             if len(ids) != 1:
-                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Select exactly one record to update')
+                return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Select exactly one record to update')
             rid = ids[0]
             # Redirect to the update route (pass record_id as query param)
             return redirect(url_for('update_records', username=username) + f'?record_id={rid}')
         else:
-            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), error='Unknown bulk action')
+            return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Unknown bulk action')
 
     except Exception as e:
         db_session.rollback()
         return render_template('get_records.html', user=None, error=str(e)), 500
     finally:
         db_session.close()
+
+# Helper: build distinct dropdown option lists for a user's records
+def dropdown_options(db_session, user_id):
+    """Return a dict of lists for record_types, categories, payment_methods, transaction_dates."""
+    record_types = [r[0] for r in db_session.query(Record.record_type).filter(Record.user_id == user_id).distinct().all()]
+    categories = [r[0] for r in db_session.query(Record.category).filter(Record.user_id == user_id).distinct().all()]
+    payment_methods = [r[0] for r in db_session.query(Record.payment_method).filter(Record.user_id == user_id).distinct().all()]
+    transaction_dates = [r[0] for r in db_session.query(Record.transaction_date).filter(Record.user_id == user_id).distinct().all()]
+    return dict(
+        record_types=record_types,
+        categories=categories,
+        payment_methods=payment_methods,
+        transaction_dates=transaction_dates,
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

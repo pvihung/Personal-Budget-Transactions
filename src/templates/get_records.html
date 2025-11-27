@@ -1,253 +1,205 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <title>{{ user.user_name if user else 'Records' }} - Records</title>
-    <style>
-        body { font-family: Arial, Helvetica, sans-serif; margin: 16px; }
-        .message { padding: 8px; margin-bottom: 10px; }
-        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
-        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
-        table { border-collapse: collapse; width: 100%; max-width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f2f2f2; }
-        tr:nth-child(even) { background: #fafafa; }
-        .small { font-size: 0.9em; color: #666; }
-        .controls { margin-bottom: 12px; }
-        .controls a, .controls form { margin-right: 8px; display: inline-block; }
-        .filter-form { margin: 12px 0; padding: 12px; border: 1px solid #eee; background: #fafafa; }
-        .filter-row { display:flex; gap: 8px; flex-wrap:wrap; align-items:center; }
-        .filter-row label { font-size:0.9em; }
-        .filter-row select, .filter-row input { padding:6px; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}{{ user.user_name if user else 'Records' }} - Records{% endblock %}
 
-<div>
-    {% if error %}
-        <div class="message error">{{ error }}</div>
-    {% endif %}
-    {% if success %}
-        <div class="message success">{{ success }}</div>
-    {% endif %}
-</div>
-
-<div class="controls">
-    <strong>User:</strong>
-    {% if user %}
-        {{ user.user_name }} (id: {{ user.user_id }})
-    {% else %}
-        Unknown
-    {% endif %}
-
-    <a href="{{ url_for('user_page', username=user.user_name) }}">Back to profile</a>
-    <a href="{{ url_for('add_records', username=user.user_name) }}">Add record</a>
-    <a href="{{ url_for('logout') }}">Logout</a>
-</div>
-
-{# --- Search by amount form (submits to search_records_amount) --- #}
-<form method="post" action="{{ url_for('search_records_amount', username=user.user_name) }}" style="margin:12px 0;">
-    <label for="search_query">Exact amount:</label>
-    <input type="text" id="search_query" name="search_query" placeholder="e.g. 12.34" value="{{ request.form.get('search_query', request.args.get('search_query', '')) }}" />
-
-    <span style="margin-left:8px;">or range:</span>
-    <label for="min_amount" style="margin-left:8px;">Min</label>
-    <input type="text" id="min_amount" name="min_amount" placeholder="min" value="{{ request.form.get('min_amount', request.args.get('min_amount', '')) }}" style="width:90px;" />
-    <label for="max_amount">Max</label>
-    <input type="text" id="max_amount" name="max_amount" placeholder="max" value="{{ request.form.get('max_amount', request.args.get('max_amount', '')) }}" style="width:90px;" />
-
-    <button type="submit">Search</button>
-    <a href="{{ url_for('get_records', username=user.user_name) }}">Clear Search</a>
-</form>
-
-{# If the view provided `search_user_records`, render them separately (read-only table) #}
-{% if search_user_records is defined %}
-    {% set search_results = search_user_records %}
-    <h3>Search results</h3>
-    {% if search_results is none or (search_results|length == 0) %}
-        <p>No matching records found for the requested amount.</p>
-    {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>record_id</th>
-                    <th>record_type</th>
-                    <th>category</th>
-                    <th>amount</th>
-                    <th>currency</th>
-                    <th>transaction_date</th>
-                    <th>payment_method</th>
-                    <th>is_recurring</th>
-                    <th>recurrence_interval</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for rec in search_results %}
-                <tr>
-                    <td>{{ rec.record_id }}</td>
-                    <td>{{ rec.record_type }}</td>
-                    <td>{{ rec.category }}</td>
-                    <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
-                    <td>{{ rec.currency or '' }}</td>
-                    <td>
-                        {% if rec.transaction_date is not none %}
-                            {% if rec.transaction_date.strftime is defined %}
-                                {{ rec.transaction_date.strftime('%Y/%m/%d') }}
-                            {% else %}
-                                {{ rec.transaction_date }}
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                    <td>{{ rec.payment_method }}</td>
-                    <td>{{ 'Yes' if rec.is_recurring else 'No' }}</td>
-                    <td>{{ rec.recurrence_interval or '' }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-{% endif %}
-
-<!-- Filter form: submits to the filter_user_records route (GET) -->
-<form class="filter-form" method="get" action="{{ url_for('filter_user_records', username=user.user_name) }}">
-    <div class="filter-row">
-        <label for="record_type">Record Type</label>
-        <select name="record_type" id="record_type">
-            <option value="">All</option>
-            {% for rt in record_types %}
-                <option value="{{ rt }}" {% if request.args.get('record_type')==rt %}selected{% endif %}>{{ rt }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="category">Category</label>
-        <select name="category" id="category">
-            <option value="">All</option>
-            {% for cat in categories %}
-                <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="transaction_date">Transaction Date</label>
-        <select name="transaction_date" id="transaction_date">
-            <option value="">All</option>
-            {% for td in transaction_dates %}
-                {# Format date options as yyyy/mm/dd #}
-                {% if td is string %}
-                    {% set td_val = td %}
-                    {% set td_label = td %}
-                {% elif td is not none and td.strftime is defined %}
-                    {% set td_val = td.strftime('%Y/%m/%d') %}
-                    {% set td_label = td.strftime('%Y/%m/%d') %}
-                {% else %}
-                    {% set td_val = td %}
-                    {% set td_label = td %}
-                {% endif %}
-                <option value="{{ td_val }}" {% if request.args.get('transaction_date') == td_val %}selected{% endif %}>{{ td_label }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="payment_method">Payment Method</label>
-        <select name="payment_method" id="payment_method">
-            <option value="">All</option>
-            {% for pm in payment_methods %}
-                <option value="{{ pm }}" {% if request.args.get('payment_method') == pm %}selected{% endif %}>{{ pm }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="is_recurring">Is Recurring</label>
-        <select name="is_recurring" id="is_recurring">
-            <option value="">All</option>
-            <option value="true" {% if request.args.get('is_recurring') == 'true' %}selected{% endif %}>Yes</option>
-            <option value="false" {% if request.args.get('is_recurring') == 'false' %}selected{% endif %}>No</option>
-        </select>
-
-        <label for="recurrence_interval">Recurrence Interval</label>
-        <select name="recurrence_interval" id="recurrence_interval">
-            <option value="">All</option>
-            {% for ri in recurrence_intervals %}
-                <option value="{{ ri }}" {% if request.args.get('recurrence_interval') == ri %}selected{% endif %}>{{ ri }}</option>
-            {% endfor %}
-        </select>
-
-        <button type="submit">Filter</button>
-        <a href="{{ url_for('get_records', username=user.user_name) }}">Clear</a>
+{% block content %}
+    <div>
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+            <div class="message success">{{ success }}</div>
+        {% endif %}
     </div>
-</form>
 
-{# If search results are present, they are rendered above. Skip the main user_records block in that case. #}
-{% if search_user_records is defined %}
-    {# Search results already shown above; do not render the main records listing or bulk actions. #}
-{% else %}
-    {% if user_records is not defined or user_records|length == 0 %}
-        <p>No records found for this user.</p>
-    {% else %}
-        <!-- Bulk action form: select rows and perform an action -->
-        <form method="post" action="{{ url_for('bulk_action', username=user.user_name) }}">
-            <div style="margin-bottom:8px;">
-                <button type="submit" name="bulk_action" value="delete" onclick="return confirm('Delete selected records? This cannot be undone.');">Delete selected</button>
-                <button type="submit" name="bulk_action" value="update">Update selected</button>
-            </div>
+    <div class="controls">
+        <strong>User:</strong>
+        {% if user %}
+            {{ user.user_name }} (id: {{ user.user_id }})
+        {% else %}
+            Unknown
+        {% endif %}
 
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="select_all" title="Select all" /></th>
-                    <th>record_id</th>
-                    <th>user_id</th>
-                    <th>record_type</th>
-                    <th>category</th>
-                    <th>amount</th>
-                    <th>currency</th>
-                    <th>transaction_date</th>
-                    <th>payment_method</th>
-                    <th>is_recurring</th>
-                    <th>recurrence_interval</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for rec in user_records %}
-                <tr>
-                    <td>
-                        <input type="checkbox" id="selected-{{ rec.record_id }}" name="selected" value="{{ rec.record_id }}">
-                    </td>
-                    <td>{{ rec.record_id }}</td>
-                    <td>{{ rec.user_id }}</td>
-                    <td>{{ rec.record_type }}</td>
-                    <td>{{ rec.category }}</td>
-                    <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
-                    <td>{{ rec.currency or '' }}</td>
-                    <td>
-                        {% if rec.transaction_date is not none %}
-                            {% if rec.transaction_date.strftime is defined %}
-                                {{ rec.transaction_date.strftime('%Y/%m/%d') }}
-                            {% else %}
-                                {{ rec.transaction_date }}
+        <a class="btn secondary" href="{{ url_for('user_page', username=user.user_name) }}">Back to profile</a>
+        <a class="btn" href="{{ url_for('add_records', username=user.user_name) }}">Add record</a>
+        <a class="btn secondary" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+    {# --- Search by amount form (submits to search_records_amount) --- #}
+    <form method="post" action="{{ url_for('search_records_amount', username=user.user_name) }}" style="margin:12px 0;">
+        <label for="search_query">Exact amount:</label>
+        <input type="text" id="search_query" name="search_query" placeholder="e.g. 12.34" value="{{ request.form.get('search_query', request.args.get('search_query', '')) }}" />
+
+        <span style="margin-left:8px;">or range:</span>
+        <label for="min_amount" style="margin-left:8px;">Min</label>
+        <input type="text" id="min_amount" name="min_amount" placeholder="min" value="{{ request.form.get('min_amount', request.args.get('min_amount', '')) }}" style="width:90px;" />
+        <label for="max_amount">Max</label>
+        <input type="text" id="max_amount" name="max_amount" placeholder="max" value="{{ request.form.get('max_amount', request.args.get('max_amount', '')) }}" style="width:90px;" />
+
+        <button class="btn" type="submit">Search</button>
+        <a class="btn secondary" href="{{ url_for('get_records', username=user.user_name) }}">Clear Search</a>
+    </form>
+
+    {% if search_user_records is defined %}
+        {% set search_results = search_user_records %}
+        <h3>Search results</h3>
+        {% if search_results is none or (search_results|length == 0) %}
+            <p>No matching records found for the requested amount.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>record_id</th>
+                        <th>record_type</th>
+                        <th>category</th>
+                        <th>amount</th>
+                        <th>currency</th>
+                        <th>transaction_date</th>
+                        <th>payment_method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rec in search_results %}
+                    <tr>
+                        <td>{{ rec.record_id }}</td>
+                        <td>{{ rec.record_type }}</td>
+                        <td>{{ rec.category }}</td>
+                        <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
+                        <td>{{ rec.currency or '' }}</td>
+                        <td>
+                            {% if rec.transaction_date is not none %}
+                                {% if rec.transaction_date.strftime is defined %}
+                                    {{ rec.transaction_date.strftime('%Y/%m/%d') }}
+                                {% else %}
+                                    {{ rec.transaction_date }}
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
-                    </td>
-                    <td>{{ rec.payment_method }}</td>
-                    <td>{{ 'Yes' if rec.is_recurring else 'No' }}</td>
-                    <td>{{ rec.recurrence_interval or '' }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        </form>
-
-        <script>
-            // Select/unselect all checkboxes
-            (function(){
-                var master = document.getElementById('select_all');
-                if(!master) return;
-                master.addEventListener('change', function(){
-                    var checked = master.checked;
-                    var boxes = document.querySelectorAll('input[name="selected"]');
-                    boxes.forEach(function(cb){ cb.checked = checked; });
-                });
-            })();
-        </script>
+                        </td>
+                        <td>{{ rec.payment_method }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     {% endif %}
-{% endif %}
 
-</body>
-</html>
+    <!-- Filter form: submits to the filter_user_records route (GET) -->
+    <form class="filter-form" method="get" action="{{ url_for('filter_user_records', username=user.user_name) }}">
+        <div class="filter-row">
+            <label for="record_type">Record Type</label>
+            <select name="record_type" id="record_type">
+                <option value="">All</option>
+                {% for rt in record_types %}
+                    <option value="{{ rt }}" {% if request.args.get('record_type')==rt %}selected{% endif %}>{{ rt }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="category">Category</label>
+            <select name="category" id="category">
+                <option value="">All</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="transaction_date">Transaction Date</label>
+            <select name="transaction_date" id="transaction_date">
+                <option value="">All</option>
+                {% for td in transaction_dates %}
+                    {% if td is string %}
+                        {% set td_val = td %}
+                        {% set td_label = td %}
+                    {% elif td is not none and td.strftime is defined %}
+                        {% set td_val = td.strftime('%Y/%m/%d') %}
+                        {% set td_label = td.strftime('%Y/%m/%d') %}
+                    {% else %}
+                        {% set td_val = td %}
+                        {% set td_label = td %}
+                    {% endif %}
+                    <option value="{{ td_val }}" {% if request.args.get('transaction_date') == td_val %}selected{% endif %}>{{ td_label }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="payment_method">Payment Method</label>
+            <select name="payment_method" id="payment_method">
+                <option value="">All</option>
+                {% for pm in payment_methods %}
+                    <option value="{{ pm }}" {% if request.args.get('payment_method') == pm %}selected{% endif %}>{{ pm }}</option>
+                {% endfor %}
+            </select>
+
+            <button class="btn" type="submit">Filter</button>
+            <a class="btn secondary" href="{{ url_for('get_records', username=user.user_name) }}">Clear</a>
+        </div>
+    </form>
+
+    {% if search_user_records is defined %}
+        {# Search results already shown above; do not render the main records listing or bulk actions. #}
+    {% else %}
+        {% if user_records is not defined or user_records|length == 0 %}
+            <p>No records found for this user.</p>
+        {% else %}
+            <form method="post" action="{{ url_for('bulk_action', username=user.user_name) }}">
+                <div style="margin-bottom:8px;">
+                    <button class="btn" type="submit" name="bulk_action" value="delete" onclick="return confirm('Delete selected records? This cannot be undone.');">Delete selected</button>
+                    <button class="btn secondary" type="submit" name="bulk_action" value="update">Update selected</button>
+                </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select_all" title="Select all" /></th>
+                        <th>record_id</th>
+                        <th>user_id</th>
+                        <th>record_type</th>
+                        <th>category</th>
+                        <th>amount</th>
+                        <th>currency</th>
+                        <th>transaction_date</th>
+                        <th>payment_method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rec in user_records %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="selected-{{ rec.record_id }}" name="selected" value="{{ rec.record_id }}">
+                        </td>
+                        <td>{{ rec.record_id }}</td>
+                        <td>{{ rec.user_id }}</td>
+                        <td>{{ rec.record_type }}</td>
+                        <td>{{ rec.category }}</td>
+                        <td class="small">{{ '%.2f'|format(rec.amount) if rec.amount is not none else '' }}</td>
+                        <td>{{ rec.currency or '' }}</td>
+                        <td>
+                            {% if rec.transaction_date is not none %}
+                                {% if rec.transaction_date.strftime is defined %}
+                                    {{ rec.transaction_date.strftime('%Y/%m/%d') }}
+                                {% else %}
+                                    {{ rec.transaction_date }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ rec.payment_method }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Select/unselect all checkboxes
+(function(){
+    var master = document.getElementById('select_all');
+    if(!master) return;
+    master.addEventListener('change', function(){
+        var checked = master.checked;
+        var boxes = document.querySelectorAll('input[name="selected"]');
+        boxes.forEach(function(cb){ cb.checked = checked; });
+    });
+})();
+</script>
+{% endblock %}

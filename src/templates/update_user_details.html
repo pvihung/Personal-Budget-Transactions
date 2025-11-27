@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Update User Details</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 16px; }
-        .message { padding: 8px; margin-bottom: 10px; }
-        .error { background:#ffe6e6; color:#a00; border:1px solid #f5c2c2; }
-        .success { background:#e6ffe6; color:#080; border:1px solid #b7f0b7; }
-        form { max-width: 420px; }
-        label { display:block; margin-top:8px; }
-        input { width:100%; padding:6px; box-sizing:border-box; }
-        .actions { margin-top:12px; }
-    </style>
-</head>
-<body>
-    <h1>Update Details for {{ user.user_name if user else '' }}</h1>
+{% extends 'base.html' %}
+{% block title %}Update User Details — In My Pocket{% endblock %}
 
+{% block content %}
+    <h1>Update Details for {{ user.user_name if user else '' }}</h1>
     {% if error %}
         <div class="message error">{{ error }}</div>
     {% endif %}
@@ -24,7 +10,11 @@
         <div class="message success">{{ success }}</div>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('update_user', username=user.user_name) }}">
+    {# Precompute urls to avoid static-analyzer warnings in attributes #}
+    {% set update_action = url_for('update_user', username=user.user_name) %}
+    {% set cancel_url = url_for('user_page', username=user.user_name) %}
+
+    <form method="POST" action="{{ update_action }}">
         <label for="email">Email</label>
         <input id="email" name="email" type="email" value="{{ user.email or '' }}" placeholder="email" />
 
@@ -44,10 +34,8 @@
         <input id="country" name="country" type="text" value="{{ user.location_country or '' }}" placeholder="country" />
 
         <div class="actions">
-            <button type="submit">Save changes</button>
-            <a href="{{ url_for('user_page', username=user.user_name) }}">Cancel</a>
+            <button class="btn" type="submit">Save changes</button>
+            <a class="btn secondary" href="{{ cancel_url }}">Cancel</a>
         </div>
     </form>
-
-</body>
-</html>
+{% endblock %}
