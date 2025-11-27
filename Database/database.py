@@ -19,8 +19,8 @@ class Record(Base):
     currency = Column(String)
     transaction_date = Column(String, nullable=False)
     payment_method = Column(String, nullable=False)
-    is_recurring = Column(Boolean, nullable=False)
-    recurrence_interval = Column(String, nullable=False)
+    is_recurring = Column(Boolean)
+    recurrence_interval = Column(String)
 
     user = relationship("User", back_populates="records")
 
@@ -49,16 +49,23 @@ Session = sessionmaker(bind=engine)
 # whenever this module is imported). Run it only when executed directly.
 if __name__ == '__main__':
     # Import final_records here to avoid heavy IO on import
-    from Database.dataframe import final_records
+    from Database.dataframe import final_records, final_user
 
     session = Session()
     try:
-        rows = final_records.to_dict(orient='records')
-        for row in rows:
+        user_rows = final_user.to_dict(orient='records')
+        for row in user_rows:
+            user = User(**row)
+            session.add(user)
+        session.commit()
+        print(f'{len(user_rows)} users added to database')
+
+        record_rows = final_records.to_dict(orient='records')
+        for row in record_rows:
             record = Record(**row)
             session.add(record)
         session.commit()
-        print(f'{len(rows)} records added to database')
+        print(f'{len(record_rows)} records added to database')
     except Exception as e:
         print('Error:', e)
         session.rollback()

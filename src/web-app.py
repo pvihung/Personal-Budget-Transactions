@@ -5,6 +5,7 @@ from decimal import Decimal
 from flask_login import login_required, LoginManager, logout_user, login_user, UserMixin, current_user
 from flask import redirect, url_for, session
 import os
+from sqlalchemy import func, extract, case
 import sys
 
 # Ensure repo root is on sys.path so sibling packages (like Database) can be imported
@@ -201,6 +202,8 @@ def user_page(username):
                 return redirect(url_for("forgot_password", username=username))
             elif action == "view_records":
                 return redirect(url_for("get_records", username=username))
+            elif action == "dashboard":
+                return redirect(url_for("dashboard", username = username))
 
         # Allow passing success/error messages via query params when redirected
         success = request.args.get('success')
@@ -546,13 +549,6 @@ def get_records(username):
         if user is None:
             return render_template("login.html", error="User not found"), 404
 
-        # Prevent a logged-in user from viewing another user's records
-        try:
-            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
-                return render_template("login.html", error="Unauthorized access"), 403
-        except Exception:
-            return render_template("login.html", error="Unauthorized access"), 403
-
         user_recs = db_session.query(Record).filter(Record.user_id == user.user_id).all()
         return render_template("get_records.html", user_records=user_recs, user=user)
     except Exception as e:
@@ -562,7 +558,285 @@ def get_records(username):
     finally:
         db_session.close()
 
+def parse_date(date_str):
+    # This function is used to parse date strings from user input
+    if not date_str:
+        return None
 
+    # Since the date table is stored with different formats (in this case MM/DD/YYYY)
+    # We want to keep everything is one exact format for filtering
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y"):
+        try:
+            parsed = datetime.strptime(date_str, fmt)
+            # Normalize into your DB format
+            return parsed.strftime("%Y/%m/%d")
+        except ValueError:
+            continue
+
+    print("Failed to parse date:", date_str)
+    return None
+
+@app.route("/user/<username>/dashboard")
+@login_required
+def dashboard(username):
+    db_session = Session()
+
+    try:
+        user = db_session.query(User).filter(User.user_name == username).first()
+        if user is None:
+            return render_template("dashboard.html", error="User not found"), 404
+
+        # Read date
+        start_str = request.args.get("start_date" or '')
+        end_str = request.args.get("end_date" or '')
+        selected_category = request.args.get("category" or '')
+
+        # Parse
+        start_date = parse_date(start_str)
+        end_date = parse_date(end_str)
+
+        # error messages for invalid dates
+        error_message = ''
+
+        # range check
+        if start_date and end_date and start_date > end_date:
+            error_message = 'Invalid date range: start_date after end_date'
+            start_date = end_date = None
+            start_str = end_str = ''
+
+        q = db_session.query(Record).filter(Record.user_id == user.user_id)
+        if start_date:
+            q = q.filter(Record.transaction_date >= start_date)
+        if end_date:
+            q = q.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            q = q.filter(Record.category == selected_category)
+
+        # For checking rows in terminal
+        rows = q.with_entities(
+            Record.record_id,
+            Record.record_type,
+            Record.amount,
+            Record.transaction_date).all()
+        print("Raw user records:", rows)
+
+        # Cards:
+        # 1st card: User Total Records
+        q_count = db_session.query(func.count(Record.record_id)).filter(Record.user_id == user.user_id)
+
+        if start_date:
+            q_count = q_count.filter(Record.transaction_date >= start_date)
+        if end_date:
+            q_count = q_count.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            q_count = q_count.filter(Record.category == selected_category)
+
+        total_records = q_count.scalar()
+
+        # 2nd card: User Total Expense
+        # This means: take the total or output NULL if no rows
+        total_expense_query = db_session.query(func.coalesce(func.sum(Record.amount), 0)).filter(Record.record_type == "Expense",
+                                                                                           Record.user_id == user.user_id)
+        if start_date:
+            total_expense_query = total_expense_query.filter(Record.transaction_date >= start_date)
+        if end_date:
+            total_expense_query = total_expense_query.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            total_expense_query = total_expense_query.filter(Record.category == selected_category)
+        total_expense = total_expense_query.scalar()
+
+        # 3rd card: User Total Income
+        # Similar to 2nd card, take the total or output NULL if no rows
+        total_income_query = db_session.query(func.coalesce(func.sum(Record.amount), 0)).filter(Record.record_type == "Income",
+                                                                        Record.user_id == user.user_id)
+        if start_date:
+            total_income_query = total_income_query.filter(Record.transaction_date >= start_date)
+        if end_date:
+            total_income_query = total_income_query.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            total_income_query = total_income_query.filter(Record.category == selected_category)
+        total_income = total_income_query.scalar()
+
+        # 4th card: Saving rate:
+        # total income - total expense / total income * 100
+        saving_rate = 0.0
+        if total_income > 0:
+            saving_rate = (total_income - total_expense) / total_income
+        else:
+            saving_rate = None
+
+        # 5th card: velocity
+        # velocity = total income - total expense
+        velocity = total_income - total_expense
+
+        # 6th card: In my pocket
+        # This shows how much money the user has at hand based on their income and expense records
+        # This means total income in a month - total expense in that time period
+        if velocity > 0:
+            in_my_pocket = velocity
+        else:
+            in_my_pocket = 0.0
+
+        # More specific recommendation
+        # If <0, then it's in danger zone
+        # If <=50% of total income, then risk zone => spend carefully
+        # If >50% of in_my_pocket, then safe zone => save to spend
+        if total_income > 0:
+            fifty_percent_income = total_income/2
+        else:
+            fifty_percent_income = 0.0
+
+        if velocity <=0 :
+            pocket_zone = 'Danger Zone'
+        elif velocity > 0 and velocity <= fifty_percent_income:
+            pocket_zone = 'Risk Zone'
+        else:
+            pocket_zone = 'Safe Zone'
+
+        recommended_safe_spend = fifty_percent_income
+
+        # Line chart: Income and Expense over month, all time
+        # Group by year and month, seperated by record_type, func: sum
+        y_expr = func.substr(Record.transaction_date, 1, 4).label('y')
+        m_expr = func.substr(Record.transaction_date, 6, 2).label('m')
+        test_query = db_session.query(
+            y_expr,
+            m_expr,
+            func.coalesce(func.sum(case((func.lower(Record.record_type) == 'expense', Record.amount), else_=0)),
+                          0).label('expense'),
+            func.coalesce(func.sum(case((func.lower(Record.record_type) == 'income', Record.amount), else_=0)),
+                          0).label('income')
+        ).filter(Record.user_id == user.user_id)
+
+        if start_date:
+            test_query = test_query.filter(Record.transaction_date >= start_date)
+        if end_date:
+            test_query = test_query.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            test_query = test_query.filter(Record.category == selected_category)
+
+        test = test_query.group_by(y_expr, m_expr).all()
+
+        # This is how it looks like:
+        # Year   Month  expense  income
+        # 2003    1      400      600
+        # 2003    2      800      600
+        # 2003    3      0        800
+
+        line_labels = []
+        point_income = []
+        point_expense = []
+        # Bar chart: Cashflow per month
+        # cashflow = income - expense
+        # we can reuse the line chart data for this
+        net_values = []
+
+        # Line chart: Cumulative Curve by Income/Expense
+        cum_income = []
+        cum_expense = []
+
+        running_income = 0.0
+        running_expense = 0.0
+
+        for y, m, expense, income in test:
+            label = f"{int(y):04d}/{int(m):02d}"
+            # this is used for line chart: overall trend
+            line_labels.append(label)
+            point_income.append(float(income))
+            point_expense.append(float(expense))
+            # this is used for bar chart
+            net_values.append(float(income) - float(expense))
+            # this is used for line chart (cumulative)
+            running_income = running_income + float(income)
+            running_expense = running_expense + float(expense)
+            cum_income.append(running_income)
+            cum_expense.append(running_expense)
+
+        # We use both cashflow and cumulative curve since they show different aspects of financial health
+        # For cashflow, it shows how much money is coming in and out each month
+        # and for cumulative curve, it shows the overall trend of income and expense over time
+
+
+        # Pie chart: Spending by category
+        # Similar to above
+        # Category:    Expense
+        # Food         1000000
+        cat_test_query = db_session.query(
+            Record.category,
+            func.coalesce(func.sum(Record.amount),0)
+        ).filter(
+            Record.record_type == "Expense",
+            Record.user_id == user.user_id
+        )
+        if start_date:
+            cat_test_query = cat_test_query.filter(Record.transaction_date >= start_date)
+        if end_date:
+            cat_test_query = cat_test_query.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            cat_test_query = cat_test_query.filter(Record.category == selected_category)
+        cat_test = cat_test_query.group_by(Record.category).all()
+
+        pie_labels = [r[0] for r in cat_test]
+        pie_values = [float(r[1]) for r in cat_test]
+
+        # Quality of life prints <3
+        print(f"Line chart data: {test}")
+        print(f"Pie chart data: {cat_test}")
+        print(f"Bar chart data (net values): {net_values}")
+        print(f"Total records: {total_records}")
+        print(f"Total expense: {total_expense}, Total income: {total_income}")
+        print(f"Saving rate: {saving_rate}")
+
+        # Finally, a table to show recent (10) transactions
+        recent_query = db_session.query(
+            Record.transaction_date,
+            Record.record_type,
+            Record.category,
+            Record.amount
+        ).filter(
+            Record.user_id == user.user_id
+        )
+
+        if start_date:
+            recent_query = recent_query.filter(Record.transaction_date >= start_date)
+        if end_date:
+            recent_query = recent_query.filter(Record.transaction_date <= end_date)
+        if selected_category:
+            recent_query = recent_query.filter(Record.category == selected_category)
+
+        recent_transactions = recent_query.order_by(
+            Record.transaction_date.desc()
+        ).limit(10).all()
+
+        return render_template("dashboard.html",
+                               user = user,
+                               start_str = start_str,
+                               end_str = end_str,
+                               error = error_message,
+                               selected_category = selected_category,
+                               total_records=total_records,
+                               total_expense=total_expense,
+                               total_income=total_income,
+                               saving_rate=saving_rate,
+                               velocity = velocity,
+                               point_income=point_income,
+                               line_labels=line_labels,
+                               point_expense=point_expense,
+                               net_values = net_values,
+                               pie_labels=pie_labels,
+                               pie_values=pie_values,
+                               cum_income=cum_income,
+                               cum_expense=cum_expense,
+                               in_my_pocket=in_my_pocket,
+                               recommended_safe_spend=recommended_safe_spend,
+                               pocket_zone = pocket_zone,
+                               recent_transactions = recent_transactions)
+    except Exception as e:
+        print('Error', e)
+        db_session.rollback()
+        return render_template("dashboard.html", error=str(e)), 500
+    finally:
+        db_session.close()
 
 @app.route("/user/<username>/get_user_records/filter_user_records", methods=["GET", "POST"])
 @login_required

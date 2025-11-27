@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 #import seaborn as sns
 
 
-data = pd.read_csv('../dataset/personal-finance-budgeting-record.csv')
+data = pd.read_csv('../dataset/personal-finance-budgeting-records-with-user-info.csv')
 
 # Get the information needed
 df = data.copy()
@@ -29,18 +29,21 @@ df['record_id'] = df['record_id'].apply(cleaning_id)
 df['record_id'] = pd.to_numeric(df['record_id'])
 
 # Checking datetime
-df['transaction_date'] = pd.to_datetime(df['transaction_date'], format='%Y-%m-%d')
+df['transaction_date'] = pd.to_datetime(df['transaction_date'], format='%m/%d/%Y')
 
 # Reorder column
 re_columns = list(df.columns)
 re_columns = ['record_id'] + ['user_id'] + [col for col in re_columns if (col != 'record_id' and col != 'user_id')]
 df = df[re_columns]
 
+
 # Final dataframe
 df = df.drop_duplicates(subset= ['record_id'], keep = 'first')
 final_df = df.drop(columns=['household_id', 'subcategory', 'description', 'payer_payee'])
 final_df.to_csv('../dataset/final_df.csv', index=False)
 
-final_records = final_df.drop(columns=['household_size', 'location_city', 'location_state', 'location_postal_code', 'location_country'])
+final_records = final_df.drop(columns=['user_name', 'email', 'password', 'household_size', 'location_city', 'location_state', 'location_postal_code', 'location_country'])
 final_records.to_csv('../dataset/final_records.csv', index=False)
 
+final_user = final_df[['user_id', 'user_name', 'email', 'password', 'household_size', 'location_city', 'location_state', 'location_postal_code', 'location_country']]
+final_user.to_csv('../dataset/final_user.csv', index=False)
