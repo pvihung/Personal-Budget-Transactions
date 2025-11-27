@@ -1,4 +1,5 @@
 # Personal-Budget-Transactions
+---
 **Group Members**: Hung Pham Viet, Zainul Hasan Syed Mohammed
 ---
 
@@ -44,7 +45,8 @@ It helps users plan proactively, visualize their financial health, and make conf
 | **Frontend Framework**              | Chart.js, HTML         | Responsive and clean web interface                  |
 | **Database**                        | SQLite /               | Persistent data storage                          
 ## Architecture Overview
-`root
+`
+root
 ├── database
 │ └── database.py
 ├── database
@@ -57,7 +59,8 @@ It helps users plan proactively, visualize their financial health, and make conf
 │ ├── edit_transaction.html
 │ └── ...
 ├── src
-│ └── web-app.py `
+│ └── web-app.py 
+`
 
 ## Usage Workflow
 1. Register or log in to establish a session.
