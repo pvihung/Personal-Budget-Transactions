@@ -45,7 +45,6 @@ It helps users plan proactively, visualize their financial health, and make conf
 | **Frontend Framework**              | Chart.js, HTML         | Responsive and clean web interface                  |
 | **Database**                        | SQLite /               | Persistent data storage                          
 ## Architecture Overview
-`
 root
 ├── database
 │   ├── database.py
@@ -58,8 +57,6 @@ root
 │   └── ...
 ├── src
 │   └── web-app.py
-
-`
 
 ## Usage Workflow
 1. Register or log in to establish a session.
