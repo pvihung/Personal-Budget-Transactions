@@ -45,8 +45,9 @@ Base.metadata.create_all(engine)
 # Session factory
 Session = sessionmaker(bind=engine)
 
-# The dataset import and seeding should not run on module import (it causes side-effects
-# whenever this module is imported). Run it only when executed directly.
+
+# Since we only use the database structure,
+# this will only run to check if the databases are created properly
 if __name__ == '__main__':
     # Import final_records here to avoid heavy IO on import
     from Database.dataframe import final_records, final_user
