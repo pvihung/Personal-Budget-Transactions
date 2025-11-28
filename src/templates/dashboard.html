@@ -417,7 +417,15 @@
         <tbody>
             {% for t in recent_transactions %}
             <tr>
-                <td style="padding:8px; border-bottom:1px solid #eee;">{{ t.transaction_date }}</td>
+                <td style="padding:8px; border-bottom:1px solid #eee;">
+                    {% if t.transaction_date is not none %}
+                        {% if t.transaction_date.strftime is defined %}
+                            {{ t.transaction_date.strftime('%Y/%m/%d') }}
+                        {% else %}
+                            {{ t.transaction_date }}
+                        {% endif %}
+                    {% endif %}
+                </td>
                 <td style="padding:8px; border-bottom:1px solid #eee;">{{ t.record_type }}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee;">{{ t.category}}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee;">${{ t.amount | round(2) }}

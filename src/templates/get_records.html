@@ -102,22 +102,7 @@
             </select>
 
             <label for="transaction_date">Transaction Date</label>
-            <select name="transaction_date" id="transaction_date">
-                <option value="">All</option>
-                {% for td in transaction_dates %}
-                    {% if td is string %}
-                        {% set td_val = td %}
-                        {% set td_label = td %}
-                    {% elif td is not none and td.strftime is defined %}
-                        {% set td_val = td.strftime('%Y/%m/%d') %}
-                        {% set td_label = td.strftime('%Y/%m/%d') %}
-                    {% else %}
-                        {% set td_val = td %}
-                        {% set td_label = td %}
-                    {% endif %}
-                    <option value="{{ td_val }}" {% if request.args.get('transaction_date') == td_val %}selected{% endif %}>{{ td_label }}</option>
-                {% endfor %}
-            </select>
+            <input type="date" id="transaction_date" name="transaction_date" value="{{ request.args.get('transaction_date', '') }}">
 
             <label for="payment_method">Payment Method</label>
             <select name="payment_method" id="payment_method">

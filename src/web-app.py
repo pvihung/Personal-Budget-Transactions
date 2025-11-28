@@ -376,21 +376,21 @@ def add_records(username):
         except Exception:
             return render_template("add_records.html", user=user, error="amount must be numeric"), 400
 
-        # transaction_date: accept dd/mm/YYYY from the form; if ISO given, fallback to parsing that
+        # transaction_date: accept ISO date (YYYY-MM-DD) from the form; support fallbacks
         transaction_date = None
         if transaction_date_raw:
             parsed = None
-            # Try yyyy/mm/dd first, then ISO variants and dd/mm/YYYY
-            for fmt in ("%Y/%m/%d", "%Y-%m-%dT%H:%M", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y"):
+            # Try common input formats, return a date() object
+            for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"):
                 try:
-                    parsed = datetime.strptime(transaction_date_raw, fmt)
+                    parsed_dt = datetime.strptime(transaction_date_raw, fmt)
+                    parsed = parsed_dt.date()
                     break
                 except Exception:
                     parsed = None
             if parsed is None:
-                return render_template("add_records.html", user=user, error="transaction_date must be in yyyy/mm/dd or ISO formats"), 400
-            # Normalize to a YYYY/MM/DD string for storage
-            transaction_date = parsed.strftime('%Y/%m/%d')
+                return render_template("add_records.html", user=user, error="transaction_date must be in YYYY-MM-DD or common formats"), 400
+            transaction_date = parsed
 
         # Create record (no recurring fields)
         record = Record(
@@ -480,22 +480,23 @@ def update_records(username):
 
         # transaction_date: accept yyyy/mm/dd first, then several fallbacks
         parsed = None
-        for fmt in ("%Y/%m/%d", "%Y-%m-%dT%H:%M", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y"):
+        for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"):
             try:
-                parsed = datetime.strptime(transaction_date_raw, fmt)
+                parsed_dt = datetime.strptime(transaction_date_raw, fmt)
+                parsed = parsed_dt.date()
                 break
             except Exception:
                 parsed = None
         if parsed is None:
-            return render_template('update_records.html', user=user, record=record, error='transaction_date must be yyyy/mm/dd or ISO formats'), 400
-        transaction_date_str = parsed.strftime('%Y/%m/%d')
+            return render_template('update_records.html', user=user, record=record, error='transaction_date must be YYYY-MM-DD or ISO formats'), 400
+        transaction_date_date = parsed
 
         # Apply updates
         record.record_type = record_type
         record.category = category
         record.amount = amount
         record.currency = currency
-        record.transaction_date = transaction_date_str
+        record.transaction_date = transaction_date_date
         record.payment_method = payment_method
 
         db_session.add(record)
@@ -544,17 +545,14 @@ def get_records(username):
         db_session.close()
 
 def parse_date(date_str):
-    # This function is used to parse date strings from user input
+    # This function is used to parse date strings from user input and return a datetime.date
     if not date_str:
         return None
 
-    # Since the date table is stored with different formats (in this case MM/DD/YYYY)
-    # We want to keep everything is one exact format for filtering
     for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y"):
         try:
-            parsed = datetime.strptime(date_str, fmt)
-            # Normalize into your DB format
-            return parsed.strftime("%Y/%m/%d")
+            parsed_dt = datetime.strptime(date_str, fmt)
+            return parsed_dt.date()
         except ValueError:
             continue
 
@@ -572,13 +570,17 @@ def dashboard(username):
             return render_template("dashboard.html", error="User not found"), 404
 
         # Read date
-        start_str = request.args.get("start_date" or '')
-        end_str = request.args.get("end_date" or '')
-        selected_category = request.args.get("category" or '')
+        start_str = request.args.get("start_date") or ''
+        end_str = request.args.get("end_date") or ''
+        selected_category = request.args.get("category") or ''
 
         # Parse
         start_date = parse_date(start_str)
         end_date = parse_date(end_str)
+
+        # Keep ISO strings for HTML date inputs
+        start_str = start_date.isoformat() if start_date else ''
+        end_str = end_date.isoformat() if end_date else ''
 
         # error messages for invalid dates
         error_message = ''
@@ -857,15 +859,12 @@ def filter_user_records(username):
         if payment_method_filter:
             q = q.filter(Record.payment_method == payment_method_filter)
 
-        # transaction_date: expect dd/mm/YYYY from the select
+        # transaction_date: expect ISO YYYY-MM-DD from the select
         if transaction_date_filter:
-            try:
-                # transaction_date is stored as 'YYYY/MM/DD' string; compare raw string equality
-                # validate format first
-                _ = datetime.strptime(transaction_date_filter, "%Y/%m/%d")
-                q = q.filter(Record.transaction_date == transaction_date_filter)
-            except ValueError:
-                return render_template("get_records.html", error="transaction_date must be yyyy/mm/dd"), 400
+            parsed_td = parse_date(transaction_date_filter)
+            if parsed_td is None:
+                return render_template("get_records.html", error="transaction_date must be YYYY-MM-DD"), 400
+            q = q.filter(Record.transaction_date == parsed_td)
 
         user_records = q.order_by(Record.transaction_date.desc()).all()
 

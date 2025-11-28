@@ -18,7 +18,7 @@
             <select id="record_type" name="record_type">
                 <option value="Expense" {% if record and record.record_type =='Expense' %}selected{% endif %}>Expense</option>
                 <option value="Income" {% if record and record.record_type =='Income' %}selected{% endif %}>Income</option>
-                <option value="Transfer" {% if record and record.record_type =='Transfer' %}selected{% endif %}>Transfer</option>
+
             </select>
 
             <label for="category">Category</label>
@@ -56,7 +56,7 @@
             </div>
 
             <label for="transaction_date">Transaction date</label>
-            <input id="transaction_date" type="text" name="transaction_date" placeholder="yyyy/mm/dd" value="{% if record and record.transaction_date %}{% if record.transaction_date is string %}{{ record.transaction_date }}{% elif record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y/%m/%d') }}{% else %}{{ record.transaction_date }}{% endif %}{% endif %}">
+            <input id="transaction_date" type="date" name="transaction_date" value="{% if record and record.transaction_date %}{% if record.transaction_date.isoformat is defined %}{{ record.transaction_date.isoformat() }}{% elif record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y-%m-%d') }}{% else %}{{ record.transaction_date }}{% endif %}{% endif %}">
 
             <label for="payment_method">Payment method</label>
             <select id="payment_method" name="payment_method">

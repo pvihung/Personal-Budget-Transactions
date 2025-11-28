@@ -51,7 +51,7 @@
         <input id="currency" type="text" name="currency" value="{{ record.currency if record and record.currency else 'USD' }}">
 
         <label for="transaction_date">Transaction date</label>
-        <input id="transaction_date" type="text" name="transaction_date" placeholder="yyyy/mm/dd" value="{% if record.transaction_date is string %}{{ record.transaction_date }}{% elif record.transaction_date and record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y/%m/%d') }}{% else %}{{ record.transaction_date }}{% endif %}">
+        <input id="transaction_date" type="date" name="transaction_date" value="{% if record.transaction_date %}{% if record.transaction_date.isoformat is defined %}{{ record.transaction_date.isoformat() }}{% elif record.transaction_date.strftime is defined %}{{ record.transaction_date.strftime('%Y-%m-%d') }}{% else %}{{ record.transaction_date }}{% endif %}{% endif %}">
 
         <label for="payment_method">Payment method</label>
         <select id="payment_method" name="payment_method">

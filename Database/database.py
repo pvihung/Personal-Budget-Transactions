@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, Date
 
 # Creating a database (SQLite for simplicity)
 engine = create_engine("sqlite:///App.db")
@@ -17,7 +17,7 @@ class Record(Base):
     category = Column(String, nullable=False)
     amount = Column(Numeric(10,2), nullable=False)
     currency = Column(String)
-    transaction_date = Column(String, nullable=False)
+    transaction_date = Column(Date, nullable=False)
     payment_method = Column(String, nullable=False)
 
     user = relationship("User", back_populates="records")
