@@ -131,13 +131,13 @@
     <label style="margin-left: 10px;">Category:</label>
     <select name="category">
         <!-- Empty = all categories -->
-        <option value="" {% if not selected_category %}selected{% endif %}>All categories</option>
-        {% for cat in pie_labels %}
-            <option value="{{ cat }}"
-                {% if selected_category == cat %}selected{% endif %}>
+    <option value="" {% if not selected_category %}selected{% endif %}>All categories</option>
+        {% for cat in all_categories %}
+        <option value="{{ cat }}"
+            {% if selected_category == cat %}selected{% endif %}>
                 {{ cat }}
-            </option>
-        {% endfor %}
+        </option>
+    {% endfor %}
     </select>
 
     <button type="submit"

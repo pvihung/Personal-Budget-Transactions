@@ -600,12 +600,13 @@ def dashboard(username):
             q = q.filter(Record.category == selected_category)
 
         # For checking rows in terminal
-        rows = q.with_entities(
-            Record.record_id,
-            Record.record_type,
-            Record.amount,
-            Record.transaction_date).all()
-        print("Raw user records:", rows)
+        # Quality of life print hehe
+        # rows = q.with_entities(
+        #     Record.record_id,
+        #     Record.record_type,
+        #     Record.amount,
+        #     Record.transaction_date).all()
+        # print("Raw user records:", rows)
 
         # Cards:
         # 1st card: User Total Records
@@ -767,12 +768,12 @@ def dashboard(username):
         pie_values = [float(r[1]) for r in cat_test]
 
         # Quality of life prints <3
-        print(f"Line chart data: {test}")
-        print(f"Pie chart data: {cat_test}")
-        print(f"Bar chart data (net values): {net_values}")
-        print(f"Total records: {total_records}")
-        print(f"Total expense: {total_expense}, Total income: {total_income}")
-        print(f"Saving rate: {saving_rate}")
+        # print(f"Line chart data: {test}")
+        # print(f"Pie chart data: {cat_test}")
+        # print(f"Bar chart data (net values): {net_values}")
+        # print(f"Total records: {total_records}")
+        # print(f"Total expense: {total_expense}, Total income: {total_income}")
+        # print(f"Saving rate: {saving_rate}")
 
         # Finally, a table to show recent (10) transactions
         recent_query = db_session.query(
@@ -795,6 +796,13 @@ def dashboard(username):
             Record.transaction_date.desc()
         ).limit(10).all()
 
+        # For filter dropdown
+        all_cat_query = db_session.query(Record.category).filter(
+            Record.user_id == user.user_id
+        ).distinct().order_by(Record.category)
+
+        all_categories = [row[0] for row in all_cat_query if row[0] is not None]
+
         return render_template("dashboard.html",
                                user = user,
                                start_str = start_str,
@@ -816,6 +824,7 @@ def dashboard(username):
                                cum_expense=cum_expense,
                                in_my_pocket=in_my_pocket,
                                recommended_safe_spend=recommended_safe_spend,
+                               all_categories = all_categories,
                                pocket_zone = pocket_zone,
                                recent_transactions = recent_transactions)
     except Exception as e:
