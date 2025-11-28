@@ -49,15 +49,26 @@ It helps users plan proactively, visualize their financial health, and make conf
 root
 ├── database
 │   ├── database.py
-│   └── App.db
-├── templates
-│   ├── index.html
-│   ├── dashboard.html
-│   ├── add_transaction.html
-│   ├── edit_transaction.html
-│   └── ...
+│   └── dataframe.py
+├── dataset
+│   ├── final_df.csv
+│   └── final_records.csv
 ├── src
 │   └── web-app.py
+    └── App.db
+|   ├── templates
+│       ├── index.html
+|       ├── base.html
+│       ├── dashboard.html
+│       ├── add_records.html
+|       ├── add_user_details.html
+|       ├── forgot_password.html
+|       ├── get_records.html
+|       ├── login.html
+|       ├── signup.html
+|       ├── update_records.html
+│       ├── update_user_details.html
+│       └── user.html
 ```
 
 ## Usage Workflow
@@ -68,4 +79,19 @@ root
 5. Access the analytics dashboard to review visual outputs. 
 6. Iterate based on insights — adjust budgets, re-categorize transactions
 
+## How to Run the Program
+1. Only run web-app.py
+2. Create Account
+3. Log In 
+4. Add user details
+5. Update user details if needed 
+6. Add records 
+7. View records
+8. Search records
+9. Filter records
+10. Delete records
+11. Update records
+12. Click Dashboard
+13. View Dashboard
+14. Filter in Dashboard
 
