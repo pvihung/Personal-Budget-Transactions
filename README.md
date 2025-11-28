@@ -63,8 +63,9 @@ root
 ## Usage Workflow
 1. Register or log in to establish a session.
 2. Add income and expense transactions through the interface.
-3. Configure or adjust monthly budget parameters.
-4. Access the analytics dashboard to review visual outputs.
-5. Iterate based on insights — adjust budgets, re-categorize transactions
+3. Add user details
+4. Configure or adjust monthly budget parameters. 
+5. Access the analytics dashboard to review visual outputs. 
+6. Iterate based on insights — adjust budgets, re-categorize transactions
 
 
