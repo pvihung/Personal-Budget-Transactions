@@ -6,12 +6,11 @@ from flask_login import login_required, LoginManager, logout_user, login_user, U
 from flask import redirect, url_for, session
 import os
 from sqlalchemy import func, case
-import sys
 
-# Ensure repo root is on sys.path so sibling packages (like Database) can be imported
-_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if _repo_root not in sys.path:
-    sys.path.insert(0, _repo_root)
+# # Ensure repo root is on sys.path so sibling packages (like Database) can be imported
+# _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# if _repo_root not in sys.path:
+#     sys.path.insert(0, _repo_root)
 
 # Import the databases created in Database folder
 from Database.database import Session, Record, User
@@ -67,7 +66,7 @@ def forgot_password(username):
         # POST -> change password
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
-            return render_template("forgot_password.html", error="User not found"), 404
+            return render_template("forgot_password.html", user=escape(username), error="User not found"), 404
 
         # use request.form.get correctly
         new_password = request.form.get('password')
@@ -81,7 +80,7 @@ def forgot_password(username):
 
     except Exception as e:
         db_session.rollback()
-        return render_template("forgot_password.html", error=str(e)), 500
+        return render_template("forgot_password.html", user=escape(username), error=str(e)), 500
     finally:
         db_session.close()
 
@@ -221,10 +220,10 @@ def add_user_details(username):
             return render_template("add_user_details.html", error="User not found"), 404
 
         # If user already has profile details set, disallow "add" and redirect to update
-        # Consider the profile 'set' if any of these fields are non-null
-        details_present = any([
-            user.email is not None,
+        # Consider the profile 'set' only if ALL required profile fields are present
+        details_present = all([
             user.household_size is not None,
+            user.email is not None,
             user.location_city is not None,
             user.location_state is not None,
             user.location_postal_code is not None,
@@ -685,8 +684,11 @@ def dashboard(username):
 
         # Line chart: Income and Expense over month, all time
         # Group by year and month, seperated by record_type, func: sum
-        y_expr = func.substr(Record.transaction_date, 1, 4).label('y')
-        m_expr = func.substr(Record.transaction_date, 6, 2).label('m')
+        #        y_expr = func.substr(Record.transaction_date, 1, 4).label('y')
+#        m_expr = func.substr(Record.transaction_date, 6, 2).label('m')
+        # Use SQLite's strftime to extract year and month from a DATE column
+        y_expr = func.strftime('%Y', Record.transaction_date).label('y')
+        m_expr = func.strftime('%m', Record.transaction_date).label('m')
         test_query = db_session.query(
             y_expr,
             m_expr,
@@ -1038,4 +1040,4 @@ def dropdown_options(db_session, user_id):
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0",port=5000,debug=True)

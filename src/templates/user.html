@@ -23,8 +23,8 @@
     </ul>
 
     <form method="POST">
-        {# Determine whether details exist in DB #}
-        {% set details_present = (user_details.email is not none) or (user_details.household_size is not none) or (user_details.location_city is not none) or (user_details.location_state is not none) or (user_details.location_postal_code is not none) or (user_details.location_country is not none) %}
+        {# Determine whether all required details exist in DB: household_size, city, state, postal code and country #}
+        {% set details_present = (user_details.email is not none) and (user_details.household_size is not none) and (user_details.location_city is not none) and (user_details.location_state is not none) and (user_details.location_postal_code is not none) and (user_details.location_country is not none) %}
 
         {# Prefer the force_add_profile flag if provided by the view (set on signup) #}
         {% set force_add = (force_add_profile is defined and force_add_profile) %}
