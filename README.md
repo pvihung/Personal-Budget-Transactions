@@ -53,10 +53,10 @@ root
 │   ├── database.py
 │   └── dataframe.py
 ├── dataset
-│   ├── personal-finance-budgeting-records-with-user-info.csv
-│   ├── final_df.csv
-│   ├── final_records.csv
-│   └── final_user.csv
+│   ├── personal-finance-budgeting-records-with-user-info.csv (illustrative dataset; included for context)
+│   ├── final_df.csv (example-derived output)
+│   ├── final_records.csv (example-derived output)
+│   └── final_user.csv (example-derived output)
 ├── src
 │   ├── web-app.py
 │   ├── App.db
@@ -100,4 +100,4 @@ root
 14. Filter in Dashboard
 
 ## Note: 
-The dataset `personal-finance-budgeting-records-with-user-info` is provided solely as a conceptual artifact to illustrate expected database behavior and data flow. It is not intended for use in production or as real user information. If you plan to integrate it into the database layer for testing or demonstration purposes, annotate the relevant sections to clearly indicate that the dataset consists of simulated, non-sensitive sample data.
+The dataset `personal-finance-budgeting-records-with-user-info` is provided solely as a conceptual artifact to illustrate expected database behavior and data flow. It is not intended for use in production or as real user information. If you use it in your testing or demonstration pipeline, ensure the corresponding sections are clearly marked to indicate that the dataset contains synthetic, non-production sample data.
