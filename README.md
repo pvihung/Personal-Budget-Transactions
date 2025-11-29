@@ -8,13 +8,14 @@ In My Pocket is a forward-looking personal finance web app designed around one s
 The application provides live visibility into your disposable income by continuously reconciling income, expenses, goals, and savings.
 It helps users plan proactively, visualize their financial health, and make confident spending decisions — all from a unified dashboard.
 
---- 
+
 ## Core Value Propostion
 - Provide a centralized financial control surface for end users.
 - Transform raw transactions into meaningful analytics leveraging.
 - Maintain a low‑overhead, fully portable footprint using SQLite.
 - Enable fast onboarding and minimal cognitive friction.
-  
+
+
 ## Insightful Visualizations
 1. Dashboard Insights
 - A unified landing experience presenting:
@@ -36,14 +37,15 @@ It helps users plan proactively, visualize their financial health, and make conf
 - Automated alerts when thresholds approach or exceed limits.
 - Historical comparison for trend visibility.
 
----
+
 ## Tools and Technologies
 | Layer                               | Technology             | Purpose                                             |
 | ----------------------------------- | ---------------------- | --------------------------------------------------- |
 | **Programming Language**            | Python                 | Core application logic                              |
-| **Backend Framework**               | Flask                  | Lightweight REST API and server logic            |
+| **Backend Framework**               | Flask                  | Lightweight REST API and server logic               |
 | **Frontend Framework**              | Chart.js, HTML         | Responsive and clean web interface                  |
-| **Database**                        | SQLite /               | Persistent data storage                          
+| **Database**                        | SQLite /               | Persistent data storage                             |
+
 ## Architecture Overview
 ```
 root
@@ -51,22 +53,24 @@ root
 │   ├── database.py
 │   └── dataframe.py
 ├── dataset
+│   ├── personal-finance-budgeting-records-with-user-info.csv
 │   ├── final_df.csv
-│   └── final_records.csv
+│   ├── final_records.csv
+│   └── final_user.csv
 ├── src
-│   └── web-app.py
-    └── App.db
-|   ├── templates
+│   ├── web-app.py
+│   ├── App.db
+│   └── templates
+│       ├── base.html
 │       ├── index.html
-|       ├── base.html
 │       ├── dashboard.html
 │       ├── add_records.html
-|       ├── add_user_details.html
-|       ├── forgot_password.html
-|       ├── get_records.html
-|       ├── login.html
-|       ├── signup.html
-|       ├── update_records.html
+│       ├── add_user_details.html
+│       ├── forgot_password.html
+│       ├── get_records.html
+│       ├── login.html
+│       ├── signup.html
+│       ├── update_records.html
 │       ├── update_user_details.html
 │       └── user.html
 ```
@@ -96,4 +100,4 @@ root
 14. Filter in Dashboard
 
 ## Note: 
-The dataset personal-finance-budgeting-records-with-user-info is provided solely as a conceptual artifact to illustrate expected database behavior and data flow. It is not intended for use in production or as real user information. If you plan to integrate it into the database layer for testing or demonstration purposes, annotate the relevant sections to clearly indicate that the dataset consists of simulated, non-sensitive sample data.
+The dataset `personal-finance-budgeting-records-with-user-info` is provided solely as a conceptual artifact to illustrate expected database behavior and data flow. It is not intended for use in production or as real user information. If you plan to integrate it into the database layer for testing or demonstration purposes, annotate the relevant sections to clearly indicate that the dataset consists of simulated, non-sensitive sample data.
