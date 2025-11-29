@@ -95,3 +95,5 @@ root
 13. View Dashboard
 14. Filter in Dashboard
 
+## Note: 
+The dataset personal-finance-budgeting-records-with-user-info is provided solely as a conceptual artifact to illustrate expected database behavior and data flow. It is not intended for use in production or as real user information. If you plan to integrate it into the database layer for testing or demonstration purposes, annotate the relevant sections to clearly indicate that the dataset consists of simulated, non-sensitive sample data.
