@@ -5,11 +5,11 @@
 
 ## Project Overview
 In My Pocket is a forward-looking personal finance web app designed around one simple question — ***“How much can I spend right now?”***
-The application provides live visibility into your disposable income by continuously reconciling income, expenses, goals, and savings.
+The application provides live visibility into your disposable income by continuously reconciling income and expenses.
 It helps users plan proactively, visualize their financial health, and make confident spending decisions — all from a unified dashboard.
 
 
-## Core Value Propostion
+## Core Value Proposition
 - Provide a centralized financial control surface for end users.
 - Transform raw transactions into meaningful analytics leveraging.
 - Maintain a low‑overhead, fully portable footprint using SQLite.
