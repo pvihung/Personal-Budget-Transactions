@@ -13,7 +13,7 @@
 
     <div>
         <h1>Add User Details</h1>
-        <form method="POST" action="{{ url_for('add_user_details', username=user.user_name) }}">
+        <form method="POST" action="{{ url_for('add_user_details') }}">
             <label for="household_size">Household size</label>
             <input id="household_size" type="number" min="0" name="household_size" placeholder="household size" value="{{ request.form.get('household_size','') }}">
 
@@ -31,7 +31,7 @@
 
             <div class="actions" style="margin-top:10px">
                 <button class="btn" type="submit">Submit</button>
-                <a class="btn secondary" href="{{ url_for('user_page', username=user.user_name) }}">Back</a>
+                <a class="btn secondary" href="{{ url_for('user_page') }}">Back</a>
             </div>
         </form>
     </div>

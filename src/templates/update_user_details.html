@@ -11,8 +11,8 @@
     {% endif %}
 
     {# Precompute urls to avoid static-analyzer warnings in attributes #}
-    {% set update_action = url_for('update_user', username=user.user_name) %}
-    {% set cancel_url = url_for('user_page', username=user.user_name) %}
+    {% set update_action = url_for('update_user') %}
+    {% set cancel_url = url_for('user_page') %}
 
     <form method="POST" action="{{ update_action }}">
         <label for="email">Email</label>

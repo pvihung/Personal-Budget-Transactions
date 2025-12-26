@@ -147,7 +147,7 @@
     </button>
 
     {% if start_str or end_str %}
-    <a href="{{ url_for('dashboard', username=user.user_name) }}"
+    <a href="{{ url_for('dashboard') }}"
        style="padding: 6px 12px; background-color: #aaa; color: white;
               text-decoration: none; border-radius: 4px; margin-left: 10px;">
         Clear
@@ -438,6 +438,6 @@
         {% endif %}
     </div>
         <! -- Back to Profile Button -->
-        <a href="{{ url_for('user_page', username=user.user_name) if user else '#' }}" class="back-btn">Back to Profile</a>
+        <a href="{{ url_for('user_page') if user else '#' }}" class="back-btn">Back to Profile</a>
 </body>
 </html>

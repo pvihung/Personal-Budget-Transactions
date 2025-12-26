@@ -12,7 +12,7 @@
     </div>
 
     <h1>Update Record for {{ user.user_name if user else 'user' }}</h1>
-    <form method="post" action="{{ url_for('update_records', username=user.user_name) }}">
+    <form method="post" action="{{ url_for('update_records') }}">
         <input type="hidden" name="record_id" value="{{ record.record_id }}">
 
         <label for="record_type">Record type</label>
@@ -63,7 +63,7 @@
 
         <div style="margin-top:12px; display:flex; gap:8px;">
             <button class="btn" type="submit">Save</button>
-            <a class="btn secondary" href="{{ url_for('get_records', username=user.user_name) }}">Back</a>
+            <a class="btn secondary" href="{{ url_for('get_records') }}">Back</a>
         </div>
     </form>
 {% endblock %}

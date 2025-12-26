@@ -13,7 +13,7 @@
 
     <div>
         <h1>Add Record for {{ user.user_name if user else 'user' }}</h1>
-        <form method="POST" action="{{ url_for('add_records', username=user.user_name) }}">
+        <form method="POST" action="{{ url_for('add_records') }}">
             <label for="record_type">Record type</label>
             <select id="record_type" name="record_type">
                 <option value="Expense" {% if record and record.record_type =='Expense' %}selected{% endif %}>Expense</option>
@@ -69,7 +69,7 @@
 
             <div style="margin-top:12px; display:flex; gap:8px;">
                 <button class="btn" type="submit">Add Record</button>
-                <a class="btn secondary" href="{{ url_for('user_page', username=user.user_name) }}" style="align-self:center; text-decoration:none;">Back to profile</a>
+                <a class="btn secondary" href="{{ url_for('user_page') }}" style="align-self:center; text-decoration:none;">Back to profile</a>
             </div>
         </form>
 

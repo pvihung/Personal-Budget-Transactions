@@ -19,13 +19,13 @@
             Unknown
         {% endif %}
 
-        <a class="btn secondary" href="{{ url_for('user_page', username=user.user_name) }}">Back to profile</a>
-        <a class="btn" href="{{ url_for('add_records', username=user.user_name) }}">Add record</a>
+        <a class="btn secondary" href="{{ url_for('user_page') }}">Back to profile</a>
+        <a class="btn" href="{{ url_for('add_records') }}">Add record</a>
         <a class="btn secondary" href="{{ url_for('logout') }}">Logout</a>
     </div>
 
     {# --- Search by amount form (submits to search_records_amount) --- #}
-    <form method="post" action="{{ url_for('search_records_amount', username=user.user_name) }}" style="margin:12px 0;">
+    <form method="post" action="{{ url_for('search_records_amount') }}" style="margin:12px 0;">
         <label for="search_query">Exact amount:</label>
         <input type="text" id="search_query" name="search_query" placeholder="e.g. 12.34" value="{{ request.form.get('search_query', request.args.get('search_query', '')) }}" />
 
@@ -36,7 +36,7 @@
         <input type="text" id="max_amount" name="max_amount" placeholder="max" value="{{ request.form.get('max_amount', request.args.get('max_amount', '')) }}" style="width:90px;" />
 
         <button class="btn" type="submit">Search</button>
-        <a class="btn secondary" href="{{ url_for('get_records', username=user.user_name) }}">Clear Search</a>
+        <a class="btn secondary" href="{{ url_for('get_records') }}">Clear Search</a>
     </form>
 
     {% if search_user_records is defined %}
@@ -83,7 +83,7 @@
     {% endif %}
 
     <!-- Filter form: submits to the filter_user_records route (GET) -->
-    <form class="filter-form" method="get" action="{{ url_for('filter_user_records', username=user.user_name) }}">
+    <form class="filter-form" method="get" action="{{ url_for('filter_user_records') }}">
         <div class="filter-row">
             <label for="record_type">Record Type</label>
             <select name="record_type" id="record_type">
@@ -113,7 +113,7 @@
             </select>
 
             <button class="btn" type="submit">Filter</button>
-            <a class="btn secondary" href="{{ url_for('get_records', username=user.user_name) }}">Clear</a>
+            <a class="btn secondary" href="{{ url_for('get_records') }}">Clear</a>
         </div>
     </form>
 
@@ -123,7 +123,7 @@
         {% if user_records is not defined or user_records|length == 0 %}
             <p>No records found for this user.</p>
         {% else %}
-            <form method="post" action="{{ url_for('bulk_action', username=user.user_name) }}">
+            <form method="post" action="{{ url_for('bulk_action') }}">
                 <div style="margin-bottom:8px;">
                     <button class="btn" type="submit" name="bulk_action" value="delete" onclick="return confirm('Delete selected records? This cannot be undone.');">Delete selected</button>
                     <button class="btn secondary" type="submit" name="bulk_action" value="update">Update selected</button>

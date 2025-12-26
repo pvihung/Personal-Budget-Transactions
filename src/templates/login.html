@@ -76,8 +76,9 @@
                     if (usernameInput) usernameInput.focus();
                     return;
                 }
-                // redirect to the route that expects the username in the path
-                window.location.href = '/login/forgot_password/' + encodeURIComponent(user);
+                // redirect to the route that expects the username as a query parameter
+                var base = '{{ url_for("forgot_password") }}';
+                window.location.href = base + '?username=' + encodeURIComponent(user);
             });
         }
     });
