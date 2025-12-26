@@ -1,0 +1,12 @@
+# Core web app
+Flask>=2.3,<4
+Flask-Login>=0.6,<0.7
+SQLAlchemy>=2.0,<3
+
+# Production WSGI server (recommended for AWS EC2)
+gunicorn>=21,<23
+
+# Data prep / local analysis (used by Database/dataframe.py)
+pandas>=2.0,<3
+matplotlib>=3.7,<4
+

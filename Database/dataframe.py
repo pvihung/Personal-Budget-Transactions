@@ -39,7 +39,7 @@ df = df[re_columns]
 
 # Final dataframe
 df = df.drop_duplicates(subset= ['record_id'], keep = 'first')
-final_df = df.drop(columns=['household_id', 'subcategory', 'description', 'payer_payee'])
+final_df = df.drop(columns=['household_id', 'subcategory', 'description', 'payer_payee', 'is_recurring', 'recurrence_interval'])
 final_df.to_csv('../dataset/final_df.csv', index=False)
 
 final_records = final_df.drop(columns=['user_name', 'email', 'password', 'household_size', 'location_city', 'location_state', 'location_postal_code', 'location_country'])

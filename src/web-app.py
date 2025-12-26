@@ -6,6 +6,7 @@ from flask_login import login_required, LoginManager, logout_user, login_user, U
 from flask import redirect, url_for, session
 import os
 from sqlalchemy import func, case
+from flask_bcrypt import Bcrypt
 
 # # Ensure repo root is on sys.path so sibling packages (like Database) can be imported
 # _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -17,10 +18,31 @@ from Database.database import Session, Record, User
 
 app = Flask(__name__)
 # Required for session cookies used by Flask and Flask-Login. Change in production.
+bcrypt = Bcrypt(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+def hash_password(password):
+    """Hash a plaintext password using bcrypt.
+
+    Returns the hashed password (utf-8 str) or None if hashing failed.
+    """
+    if password is None:
+        return None
+    password = str(password)
+    if password == "":
+        return None
+
+    try:
+        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+        # sanity-check the produced hash
+        if bcrypt.check_password_hash(hashed_password, password):
+            return hashed_password
+    except Exception:
+        return None
+    return None
 
 # Small adapter so flask-login can work with the ORM User model
 class FlaskUser(UserMixin):
@@ -55,32 +77,40 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/login/forgot_password/<username>", methods=["POST", "GET"])
-def forgot_password(username):
+@app.route("/login/forgot_password/", methods=["POST", "GET"])
+def forgot_password():
     db_session = Session()
     try:
-        # GET -> show reset form
+        # GET -> show reset form (accept optional ?username=...)
         if request.method == "GET":
-            return render_template("forgot_password.html", user=escape(username))
+            username = request.args.get("username") or ""
+            return render_template("forgot_password.html", user=escape(username) if username else None)
 
         # POST -> change password
+        username = request.form.get("username") or request.args.get("username") or ""
+        if not username:
+            return render_template("forgot_password.html", user=None, error="username is required"), 400
+
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("forgot_password.html", user=escape(username), error="User not found"), 404
 
-        # use request.form.get correctly
         new_password = request.form.get('password')
         if not new_password:
             return render_template("forgot_password.html", user=escape(username), error="Password is required"), 400
 
-        user.password = new_password
+        new_hash = hash_password(new_password)
+        if not new_hash:
+            return render_template("forgot_password.html", user=escape(username), error="Failed to hash password"), 500
+
+        user.password = new_hash
         db_session.add(user)
         db_session.commit()
         return redirect(url_for("login"))
 
     except Exception as e:
         db_session.rollback()
-        return render_template("forgot_password.html", user=escape(username), error=str(e)), 500
+        return render_template("forgot_password.html", user=escape(locals().get("username", "") or "") or None, error=str(e)), 500
     finally:
         db_session.close()
 
@@ -113,11 +143,15 @@ def signup():
             if existing_email:
                 return render_template("signup.html", error="Email already in use"), 400
 
-        # Store the password as provided (no hashing)
-        new_user = User(user_name=username, password=password, email=email)
+        password_hash = hash_password(password)
+        if not password_hash:
+            return render_template("signup.html", error="Failed to hash password"), 500
+
+        # Store the hashed password
+        new_user = User(user_name=username, password=password_hash, email=email)
         db_session.add(new_user)
         db_session.commit()
-        return redirect(url_for("login"))#, success="Account created successfully for {}".format(escape(username)))
+        return redirect(url_for("login"))
 
     except Exception as e:
         db_session.rollback()
@@ -136,14 +170,36 @@ def login():
             user = db_session.query(User).filter(User.user_name == username).first()
             if not user:
                 return render_template("login.html", error="Invalid username or password"), 401
-            # Direct password comparison (no hashing)
-            if user.password != password:
-                return render_template("login.html", error="Invalid username or password"), 401
+
+            stored = user.password or ""
+            # Verify bcrypt hash when possible; fall back to plaintext for legacy rows.
+            ok = False
+            try:
+                ok = bcrypt.check_password_hash(stored, password)
+            except Exception:
+                ok = False
+            if not ok:
+                # legacy/plaintext fallback
+                if stored != password:
+                    return render_template("login.html", error="Invalid username or password"), 401
+
+            # Optional: if legacy plaintext matched, upgrade in-place to a hash.
+            try:
+                if stored == password:
+                    upgraded = hash_password(password)
+                    if upgraded:
+                        user.password = upgraded
+                        db_session.add(user)
+                        db_session.commit()
+            except Exception:
+                # Don't block login if upgrade fails
+                db_session.rollback()
+
             # mark the user as authenticated with flask-login
             login_user(FlaskUser(user))
             # optionally store username in session for templates or quick access
             session['username'] = username
-            return redirect(url_for("user_page", username=username))
+            return redirect(url_for("user_page"))
         except Exception as e:
             return render_template("login.html", error=str(e)), 500
         finally:
@@ -161,23 +217,29 @@ def logout():
     flash("You have been logged out.")
     return redirect(url_for("index"))
 
-@app.route("/login/user/<username>", methods=["GET", "POST"])
+@app.route("/login/user", methods=["GET", "POST"])
 @login_required
-def user_page(username):
+def user_page():
 
     db_session = Session()
     try:
+        # This page should always represent the currently authenticated user.
+        try:
+            username = getattr(current_user, "user_name", None)
+        except Exception:
+            username = None
+        if not username:
+            return render_template("login.html", error="User not found"), 404
+
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
-            # Return the login page with an error if the user doesn't exist
             return render_template("login.html", error="User not found"), 404
-        # Ensure the currently authenticated user matches the requested user page
-        # This prevents a logged-in user from viewing another user's page by URL tampering
+
+        # Ensure the currently authenticated user matches the ORM user (defense-in-depth)
         try:
-            if current_user.is_authenticated and str(current_user.get_id()) != str(user.user_id):
+            if not current_user.is_authenticated or str(current_user.get_id()) != str(user.user_id):
                 return render_template("login.html", error="Unauthorized access"), 403
         except Exception:
-            # If current_user mishandles get_id for any reason, deny access safely
             return render_template("login.html", error="Unauthorized access"), 403
 
         # If the user submitted the form, handle the button pressed.
@@ -186,19 +248,18 @@ def user_page(username):
             if action == "logout":
                 return redirect(url_for("logout"))
             elif action == "edit_data":
-                # redirect to add_user_details for this user
-                return redirect(url_for("add_user_details", username=username))
+                return redirect(url_for("add_user_details"))
             elif action == "update_details":
-                # redirect to the update user details page
-                return redirect(url_for("update_user", username=username))
+                return redirect(url_for("update_user"))
             elif action == "add_record":
-                return redirect(url_for("add_records", username=username))
+                return redirect(url_for("add_records"))
             elif action == "change_password":
+                # allow pre-filling username via query string
                 return redirect(url_for("forgot_password", username=username))
             elif action == "view_records":
-                return redirect(url_for("get_records", username=username))
+                return redirect(url_for("get_records"))
             elif action == "dashboard":
-                return redirect(url_for("dashboard", username = username))
+                return redirect(url_for("dashboard"))
 
         # Allow passing success/error messages via query params when redirected
         success = request.args.get('success')
@@ -209,12 +270,12 @@ def user_page(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/add", methods=["GET", "POST"])
+@app.route("/user/add", methods=["GET", "POST"])
 @login_required
-def add_user_details(username):
+def add_user_details():
     db_session = Session()
     try:
-        # Load user once (or return 404 if not found)
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("add_user_details.html", error="User not found"), 404
@@ -231,7 +292,7 @@ def add_user_details(username):
         ])
         if details_present:
             # Redirect to the update page where edits are allowed
-            return redirect(url_for('update_user', username=username, error='Profile already initialized; use Update Details'))
+            return redirect(url_for('update_user', error='Profile already initialized; use Update Details'))
 
         # GET -> show form populated with current values
         if request.method == 'GET':
@@ -268,7 +329,7 @@ def add_user_details(username):
         db_session.add(user)
         db_session.commit()
 
-        return redirect(url_for('user_page', username=username, skip_check=1))
+        return redirect(url_for('user_page', skip_check=1))
 
     except Exception as e:
         db_session.rollback()
@@ -276,11 +337,12 @@ def add_user_details(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/update_user_details", methods=["GET", "POST"])
+@app.route("/user/update_user_details", methods=["GET", "POST"])
 @login_required
-def update_user(username):
+def update_user():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("login.html", error="User not found"), 404
@@ -337,7 +399,7 @@ def update_user(username):
         db_session.commit()
 
         # Redirect back to the user page with a success message
-        return redirect(url_for('user_page', username=username, success='Profile updated'))
+        return redirect(url_for('user_page', success='Profile updated'))
 
     except Exception as e:
         db_session.rollback()
@@ -345,11 +407,12 @@ def update_user(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/records", methods=["GET", "POST"])
+@app.route("/user/records", methods=["GET", "POST"])
 @login_required
-def add_records(username):
+def add_records():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
 
         if user is None:
@@ -414,11 +477,12 @@ def add_records(username):
         db_session.close()
 
 
-@app.route("/user/<username>/update_user_records", methods=["GET", "POST"])
+@app.route("/user/update_user_records", methods=["GET", "POST"])
 @login_required
-def update_records(username):
+def update_records():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("get_records.html", error="User not found", user=None), 404
@@ -510,13 +574,14 @@ def update_records(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/get_user_records", methods=["GET", "POST"])
+@app.route("/user/get_user_records", methods=["GET", "POST"])
 @login_required
-def get_records(username):
+def get_records():
     db_session = Session()
     try:
-        # Ensure the requested username exists
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
+
         if user is None:
             return render_template("login.html", error="User not found"), 404
 
@@ -558,12 +623,13 @@ def parse_date(date_str):
     print("Failed to parse date:", date_str)
     return None
 
-@app.route("/user/<username>/dashboard")
+@app.route("/user/dashboard")
 @login_required
-def dashboard(username):
+def dashboard():
     db_session = Session()
 
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("dashboard.html", error="User not found"), 404
@@ -836,12 +902,13 @@ def dashboard(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/get_user_records/filter_user_records", methods=["GET", "POST"])
+@app.route("/user/get_user_records/filter_user_records", methods=["GET", "POST"])
 @login_required
 #filter by record_type, category, transaction date, payment_method
-def filter_user_records(username):
+def filter_user_records():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("get_records.html", error="User not found"), 404
@@ -901,11 +968,12 @@ def filter_user_records(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/get_user_records/search_records_amount", methods=["GET","POST"])
+@app.route("/user/get_user_records/search_records_amount", methods=["GET","POST"])
 @login_required
-def search_records_amount(username):
+def search_records_amount():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("login.html", error="User not found"), 404
@@ -975,11 +1043,12 @@ def search_records_amount(username):
     finally:
         db_session.close()
 
-@app.route("/user/<username>/records/bulk", methods=["POST"])
+@app.route("/user/records/bulk", methods=["POST"])
 @login_required
-def bulk_action(username):
+def bulk_action():
     db_session = Session()
     try:
+        username = getattr(current_user, "user_name", None)
         user = db_session.query(User).filter(User.user_name == username).first()
         if user is None:
             return render_template("get_records.html", error="User not found", user=None), 404
@@ -1015,7 +1084,7 @@ def bulk_action(username):
                 return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Select exactly one record to update')
             rid = ids[0]
             # Redirect to the update route (pass record_id as query param)
-            return redirect(url_for('update_records', username=username) + f'?record_id={rid}')
+            return redirect(url_for('update_records') + f'?record_id={rid}')
         else:
             return render_template('get_records.html', user=user, user_records=db_session.query(Record).filter(Record.user_id==user.user_id).all(), **dropdown_options(db_session, user.user_id), error='Unknown bulk action')
 
